@@ -87,8 +87,8 @@ async function verifyUser(user){
 
         const currentUser = users.find(item => {
 
-            return String(item.Email || "").toLowerCase()
-                === user.email.toLowerCase();
+            return String(item.Email || "").trim().toLowerCase()
+                === String(user.email || "").trim().toLowerCase();
 
         });
 
