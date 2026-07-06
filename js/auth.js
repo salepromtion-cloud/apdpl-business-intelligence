@@ -98,7 +98,7 @@ async function verifyUser(user){
 
             showLoading(false);
 
-            alert("Access Denied.\n\nYour email is not authorized.");
+            alert("Your Google account is not authorized to access APDPL Business Intelligence.\n\nPlease contact the Aravindan(8971422339).");
 
             return;
 
