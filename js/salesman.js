@@ -1,19 +1,118 @@
-/* ---------------------------------------------------------------------------
-   1. DOM REFERENCES — add optional status lookups (safe if ids don't exist)
-   --------------------------------------------------------------------------- */
-// Add these lines inside the existing `dom.pharma / dom.pl / dom.zenvito` objects,
-// right after each `track:` line. They use getElementById, which safely returns
-// null if the id isn't present in your HTML — nothing breaks either way.
-//
-// pharma:   status: document.getElementById("pharmaStatusValue"),
-// pl:       status: document.getElementById("plStatusValue"),
-// zenvito:  status: document.getElementById("zenvitoStatusValue"),
+/* =============================================================================
+   APDPL Business Intelligence — Salesman Dashboard Logic
+   Scope: pages/salesman.html ONLY (population of existing ids, no markup/CSS)
+
+   Data source: fetchFromAppsScript() from ./api.js — the ONLY API function used.
+   No duplicate fetch logic, no other API functions created.
+   ============================================================================= */
+
+import { fetchFromAppsScript } from "./api.js";
 
 /* ---------------------------------------------------------------------------
-   2. NEW HELPERS (added once — no duplicates, no renames of existing helpers)
+   1. DOM REFERENCES (existing ids from salesman.html — not modified)
    --------------------------------------------------------------------------- */
 
-// Auto-detects fraction (0.78) vs whole percent (78) from the sheet.
+const dom = {
+  page: document.getElementById("salesmanPage"),
+
+  salesmanName: document.getElementById("salesmanName"),
+  financialMonthChip: document.querySelector("#financialMonth span:last-child"),
+  todaysDateChip: document.querySelector("#todaysDate span:last-child"),
+  profilePhoto: document.getElementById("profilePhoto"),
+  rankBadge: document.getElementById("rankBadge"),
+
+  mtdSaleValue: document.getElementById("mtdSaleValue"),
+  mtdSaleSubtitle: document.getElementById("mtdSaleSubtitle"),
+  monthlyTargetValue: document.getElementById("monthlyTargetValue"),
+  monthlyTargetSubtitle: document.getElementById("monthlyTargetSubtitle"),
+  achievementValue: document.getElementById("achievementValue"),
+  achievementSubtitle: document.getElementById("achievementSubtitle"),
+  pendingTargetValue: document.getElementById("pendingTargetValue"),
+  pendingTargetSubtitle: document.getElementById("pendingTargetSubtitle"),
+  todaysRequiredSaleValue: document.getElementById("todaysRequiredSaleValue"),
+  todaysRequiredSaleSubtitle: document.getElementById("todaysRequiredSaleSubtitle"),
+  overallUobValue: document.getElementById("overallUobValue"),
+  overallUobSubtitle: document.getElementById("overallUobSubtitle"),
+
+  pharma: {
+    sale: document.getElementById("pharmaSaleValue"),
+    target: document.getElementById("pharmaTargetValue"),
+    achievement: document.getElementById("pharmaAchievementValue"),
+    pending: document.getElementById("pharmaPendingValue"),
+    uob: document.getElementById("pharmaUobValue"),
+    fill: document.getElementById("pharmaProgressFill"),
+    track: document.getElementById("pharmaProgressTrack"),
+    status: document.getElementById("pharmaStatusValue")
+  },
+  pl: {
+    sale: document.getElementById("plSaleValue"),
+    target: document.getElementById("plTargetValue"),
+    achievement: document.getElementById("plAchievementValue"),
+    pending: document.getElementById("plPendingValue"),
+    uob: document.getElementById("plUobValue"),
+    fill: document.getElementById("plProgressFill"),
+    track: document.getElementById("plProgressTrack"),
+    status: document.getElementById("plStatusValue")
+  },
+  zenvito: {
+    sale: document.getElementById("zenvitoSaleValue"),
+    target: document.getElementById("zenvitoTargetValue"),
+    achievement: document.getElementById("zenvitoAchievementValue"),
+    pending: document.getElementById("zenvitoPendingValue"),
+    uob: document.getElementById("zenvitoUobValue"),
+    fill: document.getElementById("zenvitoProgressFill"),
+    track: document.getElementById("zenvitoProgressTrack"),
+    status: document.getElementById("zenvitoStatusValue")
+  },
+
+  currentRunRateValue: document.getElementById("currentRunRateValue"),
+  currentRunRateSubtitle: document.getElementById("currentRunRateSubtitle"),
+  requiredRunRateValue: document.getElementById("requiredRunRateValue"),
+  requiredRunRateSubtitle: document.getElementById("requiredRunRateSubtitle"),
+
+  projectedMonthEndValue: document.getElementById("projectedMonthEndValue"),
+  projectedMonthEndSubtitle: document.getElementById("projectedMonthEndSubtitle"),
+  gapToTargetValue: document.getElementById("gapToTargetValue"),
+  gapToTargetSubtitle: document.getElementById("gapToTargetSubtitle"),
+
+  pharmaReturnValue: document.getElementById("pharmaReturnValue"),
+  plReturnValue: document.getElementById("plReturnValue"),
+  returnPercentValue: document.getElementById("returnPercentValue")
+};
+
+/* ---------------------------------------------------------------------------
+   2. FORMATTING HELPERS (Indian currency / number / percent)
+   --------------------------------------------------------------------------- */
+
+const inrFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0
+});
+
+const numberFormatter = new Intl.NumberFormat("en-IN");
+
+function formatCurrency(value){
+  if (!Number.isFinite(value)) return "—";
+  return inrFormatter.format(value);
+}
+
+function formatNumber(value){
+  if (!Number.isFinite(value)) return "—";
+  return numberFormatter.format(Math.round(value));
+}
+
+function formatPercent(value){
+  if (!Number.isFinite(value)) return "—";
+  return `${value.toFixed(2)}%`;
+}
+
+/* ---------------------------------------------------------------------------
+   2b. BUSINESS-LOGIC HELPERS (new — normalization, status, greeting, avatar)
+   --------------------------------------------------------------------------- */
+
+// Auto-detects fraction (0.78) vs whole percent (78) from the sheet and
+// always returns a value on the 0–100 scale.
 function normalizePercent(value){
   const num = Number(value) || 0;
   return num <= 1 ? num * 100 : num;
@@ -73,7 +172,7 @@ function getRunRateStatus(current, required){
   };
 }
 
-// Forecast status per the business tiers you specified.
+// Forecast status per the business tiers.
 function getForecastStatus(projectedSale, target){
   if (target <= 0) return { label: "—", color: "inherit" };
   const pct = (projectedSale / target) * 100;
@@ -86,9 +185,34 @@ function getForecastStatus(projectedSale, target){
 }
 
 /* ---------------------------------------------------------------------------
-   3. ANIMATION HELPERS — animateProgress updated for color + smooth fill-in
+   3. ANIMATION HELPERS
    --------------------------------------------------------------------------- */
 
+function animateValue(el, endValue, { formatter = formatNumber, duration = 700 } = {}){
+  if (!el || !Number.isFinite(endValue)){
+    if (el) el.textContent = "—";
+    return;
+  }
+
+  const startTime = performance.now();
+
+  function tick(now){
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const current = endValue * eased;
+    el.textContent = formatter(current);
+
+    if (progress < 1){
+      requestAnimationFrame(tick);
+    } else {
+      el.textContent = formatter(endValue);
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// Updated: animates the fill smoothly AND colors it based on percent.
 function animateProgress(fillEl, trackEl, percent){
   if (!fillEl) return;
   const clamped = Math.max(0, Math.min(100, Number.isFinite(percent) ? percent : 0));
@@ -106,6 +230,59 @@ function animateProgress(fillEl, trackEl, percent){
   if (trackEl){
     trackEl.setAttribute("aria-valuenow", clamped.toFixed(0));
   }
+}
+
+/* ---------------------------------------------------------------------------
+   4. SESSION HELPERS
+   --------------------------------------------------------------------------- */
+
+function getLoggedInUser(){
+  try {
+    const raw = sessionStorage.getItem("user");
+    if (!raw) return null;
+
+    const user = JSON.parse(raw);
+    if (!user || !user.email) return null;
+
+    return user;
+  } catch (err) {
+    console.error("Failed to read logged-in user from sessionStorage:", err);
+    return null;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   5. LOADING / ERROR STATE HELPERS
+   --------------------------------------------------------------------------- */
+
+function setLoadingState(isLoading){
+  if (!dom.page) return;
+  dom.page.setAttribute("aria-busy", String(isLoading));
+}
+
+function setFatalMessage(message){
+  const subtitleEls = [
+    dom.mtdSaleSubtitle, dom.monthlyTargetSubtitle, dom.achievementSubtitle,
+    dom.pendingTargetSubtitle, dom.todaysRequiredSaleSubtitle, dom.overallUobSubtitle
+  ];
+
+  subtitleEls.forEach((el) => {
+    if (el) el.textContent = message;
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   6. SALESMAN LOOKUP (exact sheet column name — Email)
+   --------------------------------------------------------------------------- */
+
+function findSalesmanRow(salesmanSnapshot, email){
+  if (!Array.isArray(salesmanSnapshot)) return null;
+
+  return salesmanSnapshot.find(
+    (row) =>
+      String(row.Email).trim().toLowerCase() ===
+      String(email).trim().toLowerCase()
+  ) || null;
 }
 
 /* ---------------------------------------------------------------------------
@@ -144,6 +321,31 @@ function populateHeader(salesmanRow, unit, sessionUser, rank){
         })
       : "—";
   }
+}
+
+/* ---------------------------------------------------------------------------
+   7b. RANK CALCULATION (based on Overall Sale, not Role)
+   --------------------------------------------------------------------------- */
+
+function computeSalesmanRank(salesmanSnapshot, email){
+  if (!Array.isArray(salesmanSnapshot) || salesmanSnapshot.length === 0) return null;
+
+  const ranked = salesmanSnapshot
+    .map((row) => ({
+      email: row.Email,
+      overallSale:
+        (Number(row.AchievementPharma) || 0) +
+        (Number(row.AchievementPI) || 0) +
+        (Number(row.AchievementZenvito) || 0)
+    }))
+    .sort((a, b) => b.overallSale - a.overallSale);
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const index = ranked.findIndex(
+    (row) => String(row.email).trim().toLowerCase() === normalizedEmail
+  );
+
+  return index === -1 ? null : index + 1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -207,22 +409,24 @@ function populateOverallKpis(kpis){
     }
   }
 
-  if (dom.mtdSaleSubtitle) dom.mtdSaleSubtitle.textContent = "Total sale achieved this month";
-  if (dom.monthlyTargetSubtitle) dom.monthlyTargetSubtitle.textContent = "Total target assigned this month";
-  if (dom.achievementSubtitle) dom.achievementSubtitle.textContent = "Overall achievement against target";
-  if (dom.pendingTargetSubtitle) dom.pendingTargetSubtitle.textContent = "Balance target to reach";
+  if (dom.mtdSaleSubtitle) dom.mtdSaleSubtitle.textContent = "Month to date";
+  if (dom.monthlyTargetSubtitle) dom.monthlyTargetSubtitle.textContent = "Assigned this month";
+  if (dom.achievementSubtitle) dom.achievementSubtitle.textContent = "Against monthly target";
+  if (dom.pendingTargetSubtitle) dom.pendingTargetSubtitle.textContent = "Remaining to achieve";
   if (dom.todaysRequiredSaleSubtitle){
     dom.todaysRequiredSaleSubtitle.textContent = kpis.isPeriodCompleted
       ? "No working days remaining"
       : kpis.isTargetAchieved
         ? "Target already met — great work!"
-        : `Today's need over ${formatNumber(kpis.remainingWorkingDays)} working day(s) left`;
+        : `Over ${formatNumber(kpis.remainingWorkingDays)} working day(s) left`;
   }
-  if (dom.overallUobSubtitle) dom.overallUobSubtitle.textContent = "Total units on board";
+  if (dom.overallUobSubtitle) dom.overallUobSubtitle.textContent = "Units on board";
 }
 
 /* ---------------------------------------------------------------------------
-   9. COMPANY CARDS — normalized %, status shown separately (not inside value)
+   9. COMPANY CARDS (Pharma / PI (PL) / Zenvito) — normalized %, status shown
+      separately (not mixed into the value), skipped gracefully if no status
+      element exists in the HTML.
    --------------------------------------------------------------------------- */
 
 function populateCompanyCard(refs, target, achievement, achievementPct, uob){
@@ -239,7 +443,7 @@ function populateCompanyCard(refs, target, achievement, achievementPct, uob){
     refs.achievement.style.color = getProgressColor(normalizedPct);
   }
 
-  // Status goes in its own element if present; otherwise nothing extra is shown.
+  // Status goes in its own element if present; otherwise skipped — never breaks.
   if (refs.status){
     refs.status.textContent = status;
     refs.status.style.color = getProgressColor(normalizedPct);
@@ -276,6 +480,18 @@ function populateCompanyCards(salesmanRow){
    10. RUN RATE — status label + daily difference in existing subtitle
    --------------------------------------------------------------------------- */
 
+function computeRunRate(kpis, unit){
+  const daysCompleted = Number(unit?.["Days Completed"]) || 0;
+  const remainingWorkingDays = kpis.remainingWorkingDays;
+
+  const currentRunRate = daysCompleted > 0 ? kpis.overallSale / daysCompleted : 0;
+  const requiredRunRate = remainingWorkingDays > 0
+    ? kpis.pendingTarget / remainingWorkingDays
+    : 0;
+
+  return { currentRunRate, requiredRunRate, daysCompleted };
+}
+
 function populateRunRate(runRate){
   animateValue(dom.currentRunRateValue, runRate.currentRunRate, { formatter: formatCurrency });
   animateValue(dom.requiredRunRateValue, runRate.requiredRunRate, { formatter: formatCurrency });
@@ -284,7 +500,7 @@ function populateRunRate(runRate){
 
   if (dom.currentRunRateSubtitle){
     dom.currentRunRateSubtitle.textContent = runRate.daysCompleted > 0
-      ? `Average based on ${formatNumber(runRate.daysCompleted)} day(s) completed`
+      ? `Based on ${formatNumber(runRate.daysCompleted)} day(s) completed`
       : "Average daily sale so far";
   }
   if (dom.requiredRunRateSubtitle){
@@ -295,8 +511,17 @@ function populateRunRate(runRate){
 }
 
 /* ---------------------------------------------------------------------------
-   11. PROJECTION — forecast tiers updated to your new business logic
+   11. PROJECTION — forecast tiers per business rules
    --------------------------------------------------------------------------- */
+
+function computeProjection(kpis, runRate, unit){
+  const totalWorkingDays = Number(unit?.["Total Working Days"]) || 0;
+
+  const projectedMonthEndSale = runRate.currentRunRate * totalWorkingDays;
+  const gapToTarget = kpis.overallTarget - projectedMonthEndSale;
+
+  return { projectedMonthEndSale, gapToTarget };
+}
 
 function populateProjection(projection, kpis){
   animateValue(dom.projectedMonthEndValue, projection.projectedMonthEndSale, { formatter: formatCurrency });
@@ -316,7 +541,44 @@ function populateProjection(projection, kpis){
 }
 
 /* ---------------------------------------------------------------------------
-   13. INIT / ORCHESTRATION — only the populateProjection call signature changes
+   12. RETURNS
+   Summary sheet has NO Email column — filtered by SalesmanName ("Salesman").
+   --------------------------------------------------------------------------- */
+
+function computeReturns(summary, salesmanName){
+  const normalizedName = String(salesmanName).trim().toLowerCase();
+
+  const ownRows = Array.isArray(summary)
+    ? summary.filter((row) => String(row.Salesman).trim().toLowerCase() === normalizedName)
+    : [];
+
+  const pharmaRows = ownRows.filter((row) => row.Company === "Pharma");
+  const plRows = ownRows.filter((row) => row.Company === "PL");
+
+  const sumReturn = (rows) =>
+    rows.reduce((total, row) => total + (Number(row["Return Value"]) || 0), 0);
+
+  const sumSale = (rows) =>
+    rows.reduce((total, row) => total + (Number(row["Sales Value"]) || 0), 0);
+
+  const pharmaReturn = sumReturn(pharmaRows);
+  const plReturn = sumReturn(plRows);
+
+  const totalReturn = pharmaReturn + plReturn;
+  const totalSale = sumSale(pharmaRows) + sumSale(plRows);
+  const returnPercent = totalSale > 0 ? (totalReturn / totalSale) * 100 : 0;
+
+  return { pharmaReturn, plReturn, returnPercent };
+}
+
+function populateReturns(returns){
+  animateValue(dom.pharmaReturnValue, returns.pharmaReturn, { formatter: formatCurrency });
+  animateValue(dom.plReturnValue, returns.plReturn, { formatter: formatCurrency });
+  animateValue(dom.returnPercentValue, returns.returnPercent, { formatter: formatPercent });
+}
+
+/* ---------------------------------------------------------------------------
+   13. INIT / ORCHESTRATION
    --------------------------------------------------------------------------- */
 
 async function initSalesmanDashboard(){
@@ -337,6 +599,7 @@ async function initSalesmanDashboard(){
     }
     const { summary, salesmanSnapshot, unitSnapshot } = data;
 
+    // unitSnapshot may arrive as an object or as an array containing one object.
     const unit = Array.isArray(unitSnapshot) ? unitSnapshot[0] : unitSnapshot;
 
     const salesmanRow = findSalesmanRow(salesmanSnapshot, sessionUser.email);
@@ -370,4 +633,14 @@ async function initSalesmanDashboard(){
   } finally {
     setLoadingState(false);
   }
+}
+
+/* ---------------------------------------------------------------------------
+   14. ENTRY POINT
+   --------------------------------------------------------------------------- */
+
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", initSalesmanDashboard);
+} else {
+  initSalesmanDashboard();
 }
