@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salesman Dashboard — APDPL Business Intelligence</title>
+  <meta name="description" content="APDPL Business Intelligence — Salesman performance dashboard showing MTD sales, targets, achievement, run rate, projections, returns, focus products and announcements.">
+
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <link rel="stylesheet" href="../css/salesman.css">
+</head>
+<body>
+
+  <main class="salesman-page" id="salesmanPage">
+
+    <!-- ================= HEADER ================= -->
+    <header class="salesman-header" id="salesmanHeader">
+      <div class="header-brand">
+        <img
+          src="../assets/images/logo.png"
+          alt="APDPL Business Intelligence logo"
+          class="header-logo"
+          id="headerLogo">
+      </div>
+
+      <div class="header-welcome" id="headerWelcome">
+        <p class="welcome-line">
+          Welcome, <span class="salesman-name" id="salesmanName">—</span>
+        </p>
+        <div class="welcome-meta">
+          <span class="meta-chip" id="financialMonth">
+            <i class="bi bi-calendar3" aria-hidden="true"></i>
+            <span>—</span>
+          </span>
+          <span class="meta-chip" id="todaysDate">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <span>—</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="notification-btn" id="notificationBtn" aria-label="Notifications">
+          <i class="bi bi-bell" aria-hidden="true"></i>
+          <span class="notification-dot" id="notificationDot" hidden></span>
+        </button>
+
+        <div class="profile-block" id="profileBlock">
+          <div class="profile-photo-wrap">
+            <img
+              src=""
+              alt="Salesman profile photo"
+              class="profile-photo"
+              id="profilePhoto">
+            <span class="rank-badge" id="rankBadge">—</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= SECTION 1 — OVERALL PERFORMANCE ================= -->
+    <section class="dashboard-section" id="overallPerformanceSection" aria-labelledby="overallPerformanceTitle">
+      <div class="section-heading">
+        <h2 id="overallPerformanceTitle">Overall Performance</h2>
+      </div>
+
+      <div class="kpi-grid" id="overallPerformanceGrid">
+
+        <article class="kpi-card" id="kpiMtdSale">
+          <div class="kpi-icon kpi-icon-blue">
+            <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">MTD Sale</p>
+          <p class="kpi-value" id="mtdSaleValue">—</p>
+          <p class="kpi-subtitle" id="mtdSaleSubtitle">Month to date</p>
+        </article>
+
+        <article class="kpi-card" id="kpiMonthlyTarget">
+          <div class="kpi-icon kpi-icon-indigo">
+            <i class="bi bi-bullseye" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Monthly Target</p>
+          <p class="kpi-value" id="monthlyTargetValue">—</p>
+          <p class="kpi-subtitle" id="monthlyTargetSubtitle">Assigned this month</p>
+        </article>
+
+        <article class="kpi-card" id="kpiAchievement">
+          <div class="kpi-icon kpi-icon-teal">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Achievement %</p>
+          <p class="kpi-value" id="achievementValue">—</p>
+          <p class="kpi-subtitle" id="achievementSubtitle">Against monthly target</p>
+        </article>
+
+        <article class="kpi-card" id="kpiPendingTarget">
+          <div class="kpi-icon kpi-icon-amber">
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Pending Target</p>
+          <p class="kpi-value" id="pendingTargetValue">—</p>
+          <p class="kpi-subtitle" id="pendingTargetSubtitle">Remaining to achieve</p>
+        </article>
+
+        <article class="kpi-card" id="kpiTodaysRequiredSale">
+          <div class="kpi-icon kpi-icon-rose">
+            <i class="bi bi-calendar2-check" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Today's Required Sale</p>
+          <p class="kpi-value" id="todaysRequiredSaleValue">—</p>
+          <p class="kpi-subtitle" id="todaysRequiredSaleSubtitle">To stay on track</p>
+        </article>
+
+        <article class="kpi-card" id="kpiOverallUob">
+          <div class="kpi-icon kpi-icon-blue">
+            <i class="bi bi-box-seam" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Overall UOB</p>
+          <p class="kpi-value" id="overallUobValue">—</p>
+          <p class="kpi-subtitle" id="overallUobSubtitle">Units on board</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 2 — COMPANY PERFORMANCE ================= -->
+    <section class="dashboard-section" id="companyPerformanceSection" aria-labelledby="companyPerformanceTitle">
+      <div class="section-heading">
+        <h2 id="companyPerformanceTitle">Company Performance</h2>
+      </div>
+
+      <div class="company-grid" id="companyPerformanceGrid">
+
+        <article class="company-card" id="companyCardPharma">
+          <div class="company-card-header">
+            <span class="company-icon" aria-hidden="true">💊</span>
+            <h3 class="company-name">Pharma</h3>
+          </div>
+
+          <dl class="company-metrics">
+            <div class="company-metric">
+              <dt>Sale</dt>
+              <dd id="pharmaSaleValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Target</dt>
+              <dd id="pharmaTargetValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Achievement %</dt>
+              <dd id="pharmaAchievementValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Pending</dt>
+              <dd id="pharmaPendingValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>UOB</dt>
+              <dd id="pharmaUobValue">—</dd>
+            </div>
+          </dl>
+
+          <div class="progress-track" id="pharmaProgressTrack" role="progressbar" aria-label="Pharma achievement progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="pharmaProgressFill"></div>
+          </div>
+        </article>
+
+        <article class="company-card" id="companyCardPl">
+          <div class="company-card-header">
+            <span class="company-icon" aria-hidden="true">🏷️</span>
+            <h3 class="company-name">PL</h3>
+          </div>
+
+          <dl class="company-metrics">
+            <div class="company-metric">
+              <dt>Sale</dt>
+              <dd id="plSaleValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Target</dt>
+              <dd id="plTargetValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Achievement %</dt>
+              <dd id="plAchievementValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Pending</dt>
+              <dd id="plPendingValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>UOB</dt>
+              <dd id="plUobValue">—</dd>
+            </div>
+          </dl>
+
+          <div class="progress-track" id="plProgressTrack" role="progressbar" aria-label="PL achievement progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="plProgressFill"></div>
+          </div>
+        </article>
+
+        <article class="company-card" id="companyCardZenvito">
+          <div class="company-card-header">
+            <span class="company-icon" aria-hidden="true">🌿</span>
+            <h3 class="company-name">Zenvito</h3>
+          </div>
+
+          <dl class="company-metrics">
+            <div class="company-metric">
+              <dt>Sale</dt>
+              <dd id="zenvitoSaleValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Target</dt>
+              <dd id="zenvitoTargetValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Achievement %</dt>
+              <dd id="zenvitoAchievementValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Pending</dt>
+              <dd id="zenvitoPendingValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>UOB</dt>
+              <dd id="zenvitoUobValue">—</dd>
+            </div>
+          </dl>
+
+          <div class="progress-track" id="zenvitoProgressTrack" role="progressbar" aria-label="Zenvito achievement progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="zenvitoProgressFill"></div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 3 — RUN RATE ================= -->
+    <section class="dashboard-section" id="runRateSection" aria-labelledby="runRateTitle">
+      <div class="section-heading">
+        <h2 id="runRateTitle">Run Rate</h2>
+      </div>
+
+      <div class="run-rate-grid" id="runRateGrid">
+
+        <article class="run-rate-card" id="currentRunRateCard">
+          <div class="kpi-icon kpi-icon-teal">
+            <i class="bi bi-speedometer" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Current Run Rate (CRR)</p>
+          <p class="kpi-value" id="currentRunRateValue">—</p>
+          <p class="kpi-subtitle" id="currentRunRateSubtitle">Average daily sale so far</p>
+        </article>
+
+        <article class="run-rate-card" id="requiredRunRateCard">
+          <div class="kpi-icon kpi-icon-amber">
+            <i class="bi bi-graph-up" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Required Run Rate (RRR)</p>
+          <p class="kpi-value" id="requiredRunRateValue">—</p>
+          <p class="kpi-subtitle" id="requiredRunRateSubtitle">Needed daily to hit target</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 4 — PROJECTION ================= -->
+    <section class="dashboard-section" id="projectionSection" aria-labelledby="projectionTitle">
+      <div class="section-heading">
+        <h2 id="projectionTitle">Projection</h2>
+      </div>
+
+      <div class="projection-grid" id="projectionGrid">
+
+        <article class="projection-card" id="projectedMonthEndCard">
+          <div class="kpi-icon kpi-icon-blue">
+            <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Projected Month End Sale</p>
+          <p class="kpi-value" id="projectedMonthEndValue">—</p>
+          <p class="kpi-subtitle" id="projectedMonthEndSubtitle">At current run rate</p>
+        </article>
+
+        <article class="projection-card" id="gapToTargetCard">
+          <div class="kpi-icon kpi-icon-rose">
+            <i class="bi bi-exclamation-diamond" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Gap To Target</p>
+          <p class="kpi-value" id="gapToTargetValue">—</p>
+          <p class="kpi-subtitle" id="gapToTargetSubtitle">Projected shortfall / surplus</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 5 — RETURNS ================= -->
+    <section class="dashboard-section" id="returnsSection" aria-labelledby="returnsTitle">
+      <div class="section-heading">
+        <h2 id="returnsTitle">Returns</h2>
+      </div>
+
+      <div class="returns-grid" id="returnsGrid">
+
+        <article class="returns-card" id="pharmaReturnCard">
+          <div class="kpi-icon kpi-icon-indigo">
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Pharma Return</p>
+          <p class="kpi-value" id="pharmaReturnValue">—</p>
+        </article>
+
+        <article class="returns-card" id="plReturnCard">
+          <div class="kpi-icon kpi-icon-indigo">
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">PL Return</p>
+          <p class="kpi-value" id="plReturnValue">—</p>
+        </article>
+
+        <article class="returns-card" id="returnPercentCard">
+          <div class="kpi-icon kpi-icon-rose">
+            <i class="bi bi-percent" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Return %</p>
+          <p class="kpi-value" id="returnPercentValue">—</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 6 — FOCUS PRODUCTS ================= -->
+    <section class="dashboard-section" id="focusProductsSection" aria-labelledby="focusProductsTitle">
+      <div class="section-heading">
+        <h2 id="focusProductsTitle">Focus Products</h2>
+      </div>
+
+      <article class="list-card" id="focusProductsCard">
+        <ul class="scrollable-list" id="focusProductsList">
+          <li class="empty-state" id="focusProductsEmptyState">
+            <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+            <p>No focus products assigned yet.</p>
+          </li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- ================= SECTION 7 — ANNOUNCEMENTS ================= -->
+    <section class="dashboard-section" id="announcementsSection" aria-labelledby="announcementsTitle">
+      <div class="section-heading">
+        <h2 id="announcementsTitle">Announcements</h2>
+      </div>
+
+      <article class="list-card" id="announcementsCard">
+        <ul class="scrollable-list" id="announcementsList">
+          <li class="empty-state" id="announcementsEmptyState">
+            <i class="bi bi-megaphone" aria-hidden="true"></i>
+            <p>No announcements at this time.</p>
+          </li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="salesman-footer" id="salesmanFooter">
+      <span id="footerCopyright">&copy; 2026 APDPL Business Intelligence</span>
+      <span id="footerVersion">v1.0.0</span>
+    </footer>
+
+  </main>
+
+  <script type="module" src="../js/salesman.js" defer></script>
+</body>
+</html>
