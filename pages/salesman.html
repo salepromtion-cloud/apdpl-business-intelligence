@@ -32,21 +32,27 @@
 
       <div class="header-welcome" id="headerWelcome">
         <p class="welcome-line">
-          Welcome, <span class="salesman-name" id="salesmanName">—</span>
+          <span class="salesman-name" id="salesmanName">—</span>
         </p>
+        <p class="header-subtitle" id="headerSubtitle">My Performance Dashboard</p>
         <div class="welcome-meta">
           <span class="meta-chip" id="financialMonth">
             <i class="bi bi-calendar3" aria-hidden="true"></i>
-            <span>—</span>
-          </span>
-          <span class="meta-chip" id="todaysDate">
-            <i class="bi bi-clock-history" aria-hidden="true"></i>
             <span>—</span>
           </span>
         </div>
       </div>
 
       <div class="header-actions">
+        <span class="meta-chip" id="todaysDate">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <span>—</span>
+        </span>
+
+        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle light or dark theme" aria-pressed="false">
+          <i class="bi bi-moon-stars" aria-hidden="true"></i>
+        </button>
+
         <button type="button" class="notification-btn" id="notificationBtn" aria-label="Notifications">
           <i class="bi bi-bell" aria-hidden="true"></i>
           <span class="notification-dot" id="notificationDot" hidden></span>

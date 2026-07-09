@@ -20,6 +20,7 @@ const dom = {
   todaysDateChip: document.querySelector("#todaysDate span:last-child"),
   profilePhoto: document.getElementById("profilePhoto"),
   rankBadge: document.getElementById("rankBadge"),
+  themeToggleBtn: document.getElementById("themeToggleBtn"),
 
   mtdSaleValue: document.getElementById("mtdSaleValue"),
   mtdSaleSubtitle: document.getElementById("mtdSaleSubtitle"),
@@ -184,6 +185,22 @@ function getForecastStatus(projectedSale, target){
   return { label: "🚨 Immediate Attention", color: "var(--danger, #ef4444)" };
 }
 
+// Formats today's date using browser local time (NOT sheet data).
+// Example: "Wednesday, 09 Jul 2026"
+function getFormattedTodayDate(){
+  return new Date().toLocaleDateString("en-IN", {
+    weekday: "long", day: "2-digit", month: "short", year: "numeric"
+  });
+}
+
+// Normalizes the Unit Snapshot's Financial Year value into an "FY ..." label
+// without hardcoding the year — reads whatever the sheet provides.
+function getFinancialYearLabel(rawValue){
+  const value = String(rawValue || "").trim();
+  if (!value || value === "—") return "—";
+  return value.toUpperCase().startsWith("FY") ? value : `FY ${value}`;
+}
+
 /* ---------------------------------------------------------------------------
    3. ANIMATION HELPERS
    --------------------------------------------------------------------------- */
@@ -252,6 +269,72 @@ function getLoggedInUser(){
 }
 
 /* ---------------------------------------------------------------------------
+   4b. THEME TOGGLE (light / dark) — localStorage persisted, system-aware
+   --------------------------------------------------------------------------- */
+
+const THEME_STORAGE_KEY = "apdpl-theme";
+
+function getSystemPreferredTheme(){
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function getSavedTheme(){
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (err) {
+    console.error("Failed to read saved theme from localStorage:", err);
+    return null;
+  }
+}
+
+function saveTheme(theme){
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (err) {
+    console.error("Failed to save theme to localStorage:", err);
+  }
+}
+
+function updateThemeToggleIcon(theme){
+  if (!dom.themeToggleBtn) return;
+
+  const icon = dom.themeToggleBtn.querySelector("i");
+  if (icon){
+    icon.classList.remove("bi-moon-stars", "bi-sun");
+    icon.classList.add(theme === "dark" ? "bi-sun" : "bi-moon-stars");
+  }
+
+  dom.themeToggleBtn.setAttribute("aria-pressed", String(theme === "dark"));
+  dom.themeToggleBtn.setAttribute(
+    "aria-label",
+    theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+  );
+}
+
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  updateThemeToggleIcon(theme);
+}
+
+function toggleTheme(){
+  const current = document.documentElement.getAttribute("data-theme") || getSystemPreferredTheme();
+  const next = current === "dark" ? "light" : "dark";
+  applyTheme(next);
+  saveTheme(next);
+}
+
+function initThemeToggle(){
+  const initialTheme = getSavedTheme() || getSystemPreferredTheme();
+  applyTheme(initialTheme);
+
+  if (dom.themeToggleBtn){
+    dom.themeToggleBtn.addEventListener("click", toggleTheme);
+  }
+}
+
+/* ---------------------------------------------------------------------------
    5. LOADING / ERROR STATE HELPERS
    --------------------------------------------------------------------------- */
 
@@ -310,16 +393,13 @@ function populateHeader(salesmanRow, unit, sessionUser, rank){
   }
 
   if (dom.financialMonthChip){
-    dom.financialMonthChip.textContent = unit?.["Financial Year"] || "—";
+    dom.financialMonthChip.textContent = getFinancialYearLabel(unit?.["Financial Year"]);
   }
 
   if (dom.todaysDateChip){
-    const todayRaw = unit?.["Today's Date"];
-    dom.todaysDateChip.textContent = todayRaw
-      ? new Date(todayRaw).toLocaleDateString("en-IN", {
-          weekday: "short", day: "2-digit", month: "short", year: "numeric"
-        })
-      : "—";
+    // Uses the browser's local time, NOT the sheet's Today's Date / Financial
+    // Year Start Date — always reflects the visitor's actual current date.
+    dom.todaysDateChip.textContent = getFormattedTodayDate();
   }
 }
 
@@ -637,10 +717,17 @@ async function initSalesmanDashboard(){
 
 /* ---------------------------------------------------------------------------
    14. ENTRY POINT
+   Theme is applied immediately (no need to wait on the API call), then the
+   dashboard data load kicks off. Single set of listeners — no duplicates.
    --------------------------------------------------------------------------- */
 
-if (document.readyState === "loading"){
-  document.addEventListener("DOMContentLoaded", initSalesmanDashboard);
-} else {
+function bootSalesmanDashboard(){
+  initThemeToggle();
   initSalesmanDashboard();
+}
+
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", bootSalesmanDashboard);
+} else {
+  bootSalesmanDashboard();
 }
