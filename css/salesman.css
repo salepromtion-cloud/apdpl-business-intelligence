@@ -260,7 +260,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 }
 
 /* ---------------------------------------------------------------------
-   3. HEADER — Clean, focused on Welcome Text, Premium Profile
+   3. HEADER — Clean, focused on Welcome Text, Premium Profile (Desktop)
    --------------------------------------------------------------------- */
 
 .salesman-header{
@@ -289,12 +289,18 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 }
 
 .header-logo{
-  block-size: clamp(28px, 3.5vw, 36px); 
+  block-size: 36px; /* Desktop Size */
   inline-size: auto;
   max-inline-size: 100%;
   object-fit: contain;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+}
+
+@media (max-width: 1024px) {
+  .header-logo {
+    block-size: 32px; /* Tablet Size */
+  }
 }
 
 .header-welcome{
@@ -313,7 +319,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   gap: 8px;
   font-family: var(--sm-font-display);
   font-weight: 600;
-  font-size: clamp(16px, 2vw, 22px); 
+  font-size: clamp(16px, 1.5vw, 20px); 
   color: var(--sm-ink);
   letter-spacing: -0.015em;
   line-height: 1.2;
@@ -400,8 +406,8 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 42px;
-  block-size: 42px;
+  inline-size: 40px; 
+  block-size: 40px; 
   border-radius: var(--sm-radius-md);
   border: 1px solid var(--sm-border);
   background: var(--sm-surface);
@@ -473,8 +479,8 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   max-inline-size: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--sm-surface);
-  box-shadow: 0 0 0 1px var(--sm-border), var(--sm-shadow-sm);
+  border: 1.5px solid var(--sm-border);
+  box-shadow: var(--sm-shadow-sm);
   background: var(--sm-surface-2);
   transition: all var(--sm-duration) var(--sm-ease);
 }
@@ -928,3 +934,568 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   overflow-wrap: anywhere;
   word-break: break-word;
   white-space: normal;
+}
+
+.run-rate-card .kpi-subtitle,
+.projection-card .kpi-subtitle{
+  font-weight: 500;
+  font-size: clamp(11.5px, 0.4vw + 0.5rem, 13px);
+  overflow-wrap: break-word;
+}
+
+#currentRunRateCard::before{ content: ""; position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 4px; block-size: 100%; background: linear-gradient(180deg, var(--sm-teal-500), var(--sm-blue-500)); }
+#requiredRunRateCard::before{ content: ""; position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 4px; block-size: 100%; background: linear-gradient(180deg, var(--sm-orange-500), var(--sm-orange-600)); }
+#projectedMonthEndCard::before{ content: ""; position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 4px; block-size: 100%; background: linear-gradient(180deg, var(--sm-blue-500), var(--sm-indigo-500)); }
+#gapToTargetCard::before{ content: ""; position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 4px; block-size: 100%; background: linear-gradient(180deg, var(--sm-rose-500), var(--sm-red-500)); }
+
+#requiredRunRateCard .kpi-value,
+#gapToTargetCard .kpi-value{
+  color: var(--sm-orange-600);
+}
+
+/* ---------------------------------------------------------------------
+   8. RETURNS (Section 5)
+   --------------------------------------------------------------------- */
+
+.returns-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(12px, 1.5vw, 20px);
+}
+
+.returns-card{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(16px, 2vw, 22px);
+  background: var(--sm-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--sm-glass-border);
+  border-inline-start: 4px solid var(--sm-red-500);
+  border-radius: var(--sm-radius-md);
+  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-sm);
+  min-inline-size: 0;
+  transition: all var(--sm-duration) var(--sm-ease);
+}
+
+.returns-card:hover{
+  transform: translateY(-4px);
+  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-md);
+}
+
+.returns-card .kpi-value{
+  color: var(--sm-red-500);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.returns-card .kpi-icon{
+  background: var(--sm-red-50);
+  color: var(--sm-red-500);
+}
+
+/* ---------------------------------------------------------------------
+   9. LIST CARDS
+   --------------------------------------------------------------------- */
+
+.list-card{
+  background: var(--sm-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--sm-glass-border);
+  border-radius: var(--sm-radius-lg);
+  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-sm);
+  padding: clamp(16px, 2vw, 24px);
+  transition: background-color var(--sm-theme-duration) var(--sm-ease);
+}
+
+.scrollable-list{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-block-size: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sm-border) transparent;
+}
+
+.scrollable-list::-webkit-scrollbar{ inline-size: 8px; }
+.scrollable-list::-webkit-scrollbar-track{ background: transparent; }
+.scrollable-list::-webkit-scrollbar-thumb{ background: var(--sm-border); border-radius: var(--sm-radius-pill); }
+.scrollable-list::-webkit-scrollbar-thumb:hover{ background: var(--sm-ink-faint); }
+
+.scrollable-list li:not(.empty-state){
+  padding: 14px 16px;
+  border-radius: var(--sm-radius-md);
+  background: var(--sm-surface-2);
+  border: 1px solid var(--sm-border-soft);
+  font-size: clamp(13px, 1vw, 14.5px);
+  color: var(--sm-ink);
+  overflow-wrap: break-word;
+  transition: all var(--sm-duration) var(--sm-ease);
+}
+
+.scrollable-list li:not(.empty-state):hover{
+  background: var(--sm-blue-50);
+  transform: translateX(4px);
+  box-shadow: var(--sm-shadow-sm);
+  border-color: color-mix(in srgb, var(--sm-blue-500) 20%, var(--sm-border-soft));
+}
+
+.empty-state{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--sm-ink-faint);
+}
+
+.empty-state i{ font-size: 30px; opacity: 0.8; }
+.empty-state p{ margin: 0; font-size: 14px; max-inline-size: 240px; }
+
+/* ---------------------------------------------------------------------
+   10. FOOTER
+   --------------------------------------------------------------------- */
+
+.salesman-footer{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 24px var(--sm-gutter) 32px;
+  max-inline-size: var(--sm-max-width);
+  margin-inline: auto;
+  inline-size: 100%;
+  font-family: var(--sm-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--sm-ink-faint);
+  border-block-start: 1px solid var(--sm-border-soft);
+}
+
+.salesman-footer span{ overflow-wrap: break-word; min-inline-size: 0; }
+
+/* ---------------------------------------------------------------------
+   11. SALES DETAILS — TABLES (Premium ERP style)
+   --------------------------------------------------------------------- */
+
+.tabs-nav{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  margin-block-end: 20px;
+  background: var(--sm-surface-2);
+  border: 1px solid var(--sm-border);
+  border-radius: var(--sm-radius-lg);
+  box-shadow: var(--sm-shadow-sm);
+}
+
+.tab-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-block-size: 44px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--sm-radius-sm);
+  background: transparent;
+  color: var(--sm-ink-soft);
+  font-family: var(--sm-font-body);
+  font-size: clamp(13px, 1vw, 14px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--sm-duration) var(--sm-ease);
+}
+
+.tab-btn:hover{ background: var(--sm-surface); color: var(--sm-ink); }
+.tab-btn.is-active{ background: var(--sm-surface); color: var(--sm-blue-600); box-shadow: var(--sm-shadow-sm); border: 1px solid var(--sm-border-soft); }
+.tab-btn:focus-visible{ outline: 2px solid var(--sm-blue-500); outline-offset: 2px; }
+.tab-icon{ font-size: 15px; }
+.tab-panel{ outline: none; }
+.analysis-summary-grid{ margin-block-end: 20px; }
+
+.table-search-bar{
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-block-end: 16px;
+  background: var(--sm-surface);
+  border: 1px solid var(--sm-border);
+  border-radius: var(--sm-radius-md);
+  box-shadow: var(--sm-shadow-sm);
+  transition: all var(--sm-duration) var(--sm-ease);
+}
+
+.table-search-bar:focus-within{
+  border-color: var(--sm-blue-500);
+  box-shadow: 0 0 0 3px var(--sm-blue-50);
+}
+
+.table-search-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 46px;
+  block-size: 46px;
+  flex-shrink: 0;
+  color: var(--sm-ink-faint);
+  font-size: 16px;
+}
+
+.table-search-input{
+  flex: 1;
+  min-inline-size: 0;
+  block-size: 46px;
+  padding-inline-end: 16px;
+  border: none;
+  background: transparent;
+  color: var(--sm-ink);
+  font-family: var(--sm-font-body);
+  font-size: clamp(14px, 1.2vw, 15px);
+}
+
+.table-search-input::placeholder{ color: var(--sm-ink-faint); }
+.table-search-input:focus{ outline: none; }
+
+.data-table-wrapper{
+  position: relative;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-block-size: 65vh;
+  border: 1px solid var(--sm-border);
+  border-radius: var(--sm-radius-lg);
+  background: var(--sm-surface);
+  box-shadow: var(--sm-shadow-md);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sm-border) transparent;
+}
+
+.data-table-wrapper::-webkit-scrollbar{ inline-size: 8px; block-size: 8px; }
+.data-table-wrapper::-webkit-scrollbar-track{ background: transparent; }
+.data-table-wrapper::-webkit-scrollbar-thumb{ background: var(--sm-border); border-radius: var(--sm-radius-pill); }
+
+.data-table{
+  inline-size: 100%;
+  min-inline-size: 520px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: clamp(13px, 0.5vw + 0.75rem, 14.5px);
+  color: var(--sm-ink);
+}
+
+.data-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 14px 18px;
+  background: color-mix(in srgb, var(--sm-surface-2) 98%, var(--sm-surface));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--sm-ink-soft);
+  font-family: var(--sm-font-body);
+  font-size: clamp(11.5px, 0.5vw + 0.6rem, 12px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  border-block-end: 1px solid var(--sm-border);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.data-table tbody td{
+  padding: 12px 18px;
+  border-block-end: 1px solid var(--sm-border-soft);
+  color: var(--sm-ink);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td{ border-block-end: none; }
+.data-table tbody tr{ transition: background-color 0.15s var(--sm-ease); }
+.data-table tbody tr:hover td{ background: var(--sm-blue-50); }
+.data-table tbody tr:nth-child(even) td{ background: color-mix(in srgb, var(--sm-surface-2) 65%, transparent); }
+.data-table tbody tr:nth-child(even):hover td{ background: var(--sm-blue-50); }
+
+#dayWiseTable th:not(:first-child), #dayWiseTable td:not(:first-child),
+#customerTable th:nth-child(n+3), #customerTable td:nth-child(n+3),
+#routeTable th:nth-child(n+2), #routeTable td:nth-child(n+2){
+  text-align: right;
+  font-family: var(--sm-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table .table-empty-row td{ padding: 0; border: none; }
+.data-table .table-empty-row:hover td{ background: transparent; }
+
+/* ---------------------------------------------------------------------
+   12. RESPONSIVE — Tablet & Desktop
+   --------------------------------------------------------------------- */
+
+@media (min-width: 420px){
+  .header-actions{ gap: clamp(12px, 1.5vw, 16px); }
+}
+
+@media (min-width: 560px){
+  .kpi-grid{ grid-template-columns: repeat(3, 1fr); }
+  .returns-grid{ grid-template-columns: repeat(3, 1fr); }
+  .run-rate-grid, .projection-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 640px){
+  .portal-tab{ flex: 0 1 auto; padding: 12px 28px; }
+  .tab-btn{ flex: 0 1 auto; padding: 10px 24px; }
+}
+
+@media (min-width: 860px){
+  .company-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 1080px){
+  .kpi-grid{ grid-template-columns: repeat(6, 1fr); }
+  .header-welcome{ flex-direction: row; align-items: baseline; gap: 16px; }
+  .header-subtitle{ order: 2; }
+  .welcome-meta{ order: 3; margin-block-start: 0; }
+  .data-table-wrapper{ max-block-size: 72vh; }
+}
+
+@media (max-width: 419px){
+  .meta-chip span:last-child{
+    max-inline-size: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   12b. MOBILE HEADER REDESIGN (Premium ERP App Layout)
+   Replaces display: contents with a standard CSS Grid spanning system.
+   --------------------------------------------------------------------- */
+
+@media (max-width: 767px){
+  .salesman-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 12px 10px;
+    align-items: center;
+    padding: 10px var(--sm-gutter) 12px;
+    min-height: auto;
+  }
+
+  .header-brand { 
+    grid-column: 1; 
+    grid-row: 1; 
+  }
+
+  .header-logo { 
+    block-size: 28px; 
+  }
+
+  .header-welcome { 
+    grid-column: 2; 
+    grid-row: 1 / 3; 
+    align-self: stretch; /* Fills vertical space to ensure internal 1fr halves match parent rows perfectly */
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    align-items: center; /* Centers items within their respective 1fr half */
+    min-inline-size: 0;
+    margin: 0;
+  }
+
+  .welcome-line {
+    grid-row: 1;
+    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+    font-size: 11px; 
+    color: var(--sm-ink-soft);
+    font-weight: 500;
+    white-space: nowrap;
+    min-inline-size: 0;
+  }
+
+  .salesman-name {
+    font-size: 14.5px; 
+    font-weight: 600;
+    color: var(--sm-blue-600);
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .welcome-line .rank-badge,
+  .header-subtitle { 
+    display: none !important; 
+  }
+
+  .profile-block { 
+    grid-column: 3; 
+    grid-row: 1; 
+    justify-self: end; 
+  }
+
+  .welcome-meta {
+    grid-row: 2;
+    justify-self: start;
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+    min-inline-size: 0;
+  }
+
+  .welcome-meta .meta-chip {
+    font-size: 11px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-inline-size: 100%;
+  }
+
+  .welcome-meta .meta-chip:nth-child(n+2) {
+    display: none !important;
+  }
+
+  .header-actions {
+    grid-column: 3;
+    grid-row: 2;
+    justify-self: end;
+    margin-inline-start: 0;
+    gap: 12px;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   12c. MOBILE HARDENING (Native App Feel)
+   --------------------------------------------------------------------- */
+
+@media (max-width: 480px){
+  .portal-tabs{
+    top: auto;
+    position: static;
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .portal-tab{
+    padding: 12px 10px;
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .tabs-nav{ padding: 6px; gap: 6px; }
+  .tab-btn{ padding: 10px 10px; font-size: 13px; }
+
+  .dashboard-section{
+    padding-inline: 16px;
+    padding-block-start: 20px;
+  }
+
+  .kpi-card{ padding: 14px; gap: 6px; min-block-size: 104px; }
+  .kpi-icon{ inline-size: 36px; block-size: 36px; font-size: 16px; }
+  
+  .company-card{ padding: 16px; }
+  .company-icon{ inline-size: 36px; block-size: 36px; font-size: 16px; }
+  
+  .run-rate-card, .projection-card{ padding: 16px; }
+  .returns-card{ padding: 14px; }
+  .list-card{ padding: 14px; }
+  
+  .scrollable-list li:not(.empty-state){ padding: 12px 14px; }
+  .empty-state{ padding: 32px 16px; }
+
+  .data-table-wrapper{
+    max-block-size: 60vh;
+    border-radius: var(--sm-radius-md);
+  }
+
+  .data-table thead th, .data-table tbody td{ padding: 10px 14px; }
+  .table-search-icon, .table-search-input{ block-size: 44px; }
+
+  .salesman-footer{
+    justify-content: center;
+    text-align: center;
+    padding-inline: 16px;
+  }
+}
+
+/* Extra-narrow phones (320px–360px) */
+@media (max-width: 360px){
+  .portal-tab span{ max-inline-size: 70px; }
+  .portal-tab{ font-size: 12px; padding: 10px 6px; }
+  .tab-btn{ font-size: 12px; padding: 10px 6px; }
+
+  .data-table{ min-inline-size: 460px; }
+}
+
+/* ---------------------------------------------------------------------
+   13. ACCESSIBILITY & PERFORMANCE
+   --------------------------------------------------------------------- */
+
+:focus-visible{
+  outline: 2px solid var(--sm-blue-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button, input, [role="tab"]{
+  min-block-size: 40px; /* Improved touch targets */
+}
+
+@media (prefers-contrast: more){
+  .kpi-card, .company-card, .run-rate-card, .projection-card,
+  .returns-card, .list-card, .data-table-wrapper{
+    border-width: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .salesman-page *, .salesman-page *::before, .salesman-page *::after{
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   14. TABLE SAFETY NET
+   --------------------------------------------------------------------- */
+
+#dashboardView, #salesDetailsView{
+  max-inline-size: 100%;
+  overflow-x: hidden;
+}
+
+#dashboardView table, #salesDetailsView table{
+  max-inline-size: 100%;
+}
+
+#dashboardView img, #salesDetailsView img, .salesman-page img{
+  max-inline-size: 100%;
+  block-size: auto;
+}
