@@ -1,1430 +1,806 @@
-/* =========================================================================
-   APDPL Business Intelligence — Salesman Dashboard Styles
-   Scope: pages/salesman.html ONLY
-   Architecture: CSS custom properties / design tokens, mobile-first,
-   theme controlled via [data-theme="light"|"dark"] on :root, with
-   prefers-color-scheme as the pre-JS fallback on first paint.
-   ========================================================================= */
+/* =============================================================================
+   APDPL Business Intelligence — Salesman Dashboard Logic
+   Scope: pages/salesman.html ONLY (population of existing ids, no markup/CSS)
 
-/* ---------------------------------------------------------------------
-   1. DESIGN TOKENS — LIGHT (default)
-   --------------------------------------------------------------------- */
+   Data source: fetchFromAppsScript() from ./api.js — the ONLY API function used.
+   No duplicate fetch logic, no other API functions created.
+   ============================================================================= */
 
-:root{
-  /* Brand */
-  --sm-blue-50:  #EFF6FF;
-  --sm-blue-100: #DBEAFE;
-  --sm-blue-500: #2563EB;
-  --sm-blue-600: #1D4ED8;
-  --sm-blue-700: #1E40AF;
+import { fetchFromAppsScript } from "./api.js";
 
-  --sm-indigo-500: #6366F1;
-  --sm-teal-500:   #0D9488;
-  --sm-orange-500: #F97316;
-  --sm-orange-600: #EA580C;
-  --sm-green-500:  #16A34A;
-  --sm-green-600:  #15803D;
-  --sm-rose-500:   #E11D48;
-  --sm-red-500:    #DC2626;
-  --sm-red-50:     #FEF2F2;
+/* ---------------------------------------------------------------------------
+   1. DOM REFERENCES (existing ids from salesman.html — not modified)
+   --------------------------------------------------------------------------- */
 
-  /* Surface */
-  --sm-bg:          #F4F7FB;
-  --sm-surface:      #FFFFFF;
-  --sm-surface-2:    #F8FAFC;
-  --sm-border:       #E4E9F1;
-  --sm-border-soft:  #EDF1F6;
+const dom = {
+  page: document.getElementById("salesmanPage"),
 
-  /* Text */
-  --sm-ink:        #101828;
-  --sm-ink-soft:   #5B6478;
-  --sm-ink-faint:  #8A94A6;
+  salesmanName: document.getElementById("salesmanName"),
+  financialMonthChip: document.querySelector("#financialMonth span:last-child"),
+  todaysDateChip: document.querySelector("#todaysDate span:last-child"),
+  profilePhoto: document.getElementById("profilePhoto"),
+  rankBadge: document.getElementById("rankBadge"),
+  themeToggleBtn: document.getElementById("themeToggleBtn"),
 
-  /* Shadow */
-  --sm-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --sm-shadow-md: 0 6px 20px rgba(16, 24, 40, 0.07);
-  --sm-shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.12);
+  // Portal navigation (new — Dashboard / Sales Details tabs)
+  dashboardTabBtn: document.getElementById("dashboardTabBtn"),
+  detailsTabBtn: document.getElementById("detailsTabBtn"),
+  dashboardView: document.getElementById("dashboardView"),
+  salesDetailsView: document.getElementById("salesDetailsView"),
 
-  /* Radius */
-  --sm-radius-sm: 10px;
-  --sm-radius-md: 16px;
-  --sm-radius-lg: 20px;
-  --sm-radius-pill: 999px;
+  mtdSaleValue: document.getElementById("mtdSaleValue"),
+  mtdSaleSubtitle: document.getElementById("mtdSaleSubtitle"),
+  monthlyTargetValue: document.getElementById("monthlyTargetValue"),
+  monthlyTargetSubtitle: document.getElementById("monthlyTargetSubtitle"),
+  achievementValue: document.getElementById("achievementValue"),
+  achievementSubtitle: document.getElementById("achievementSubtitle"),
+  pendingTargetValue: document.getElementById("pendingTargetValue"),
+  pendingTargetSubtitle: document.getElementById("pendingTargetSubtitle"),
+  todaysRequiredSaleValue: document.getElementById("todaysRequiredSaleValue"),
+  todaysRequiredSaleSubtitle: document.getElementById("todaysRequiredSaleSubtitle"),
+  overallUobValue: document.getElementById("overallUobValue"),
+  overallUobSubtitle: document.getElementById("overallUobSubtitle"),
 
-  /* Type */
-  --sm-font-display: 'Space Grotesk', sans-serif;
-  --sm-font-body: 'Inter', sans-serif;
-  --sm-font-mono: 'JetBrains Mono', monospace;
+  pharma: {
+    sale: document.getElementById("pharmaSaleValue"),
+    target: document.getElementById("pharmaTargetValue"),
+    achievement: document.getElementById("pharmaAchievementValue"),
+    pending: document.getElementById("pharmaPendingValue"),
+    uob: document.getElementById("pharmaUobValue"),
+    fill: document.getElementById("pharmaProgressFill"),
+    track: document.getElementById("pharmaProgressTrack"),
+    status: document.getElementById("pharmaStatusValue")
+  },
+  pl: {
+    sale: document.getElementById("plSaleValue"),
+    target: document.getElementById("plTargetValue"),
+    achievement: document.getElementById("plAchievementValue"),
+    pending: document.getElementById("plPendingValue"),
+    uob: document.getElementById("plUobValue"),
+    fill: document.getElementById("plProgressFill"),
+    track: document.getElementById("plProgressTrack"),
+    status: document.getElementById("plStatusValue")
+  },
+  zenvito: {
+    sale: document.getElementById("zenvitoSaleValue"),
+    target: document.getElementById("zenvitoTargetValue"),
+    achievement: document.getElementById("zenvitoAchievementValue"),
+    pending: document.getElementById("zenvitoPendingValue"),
+    uob: document.getElementById("zenvitoUobValue"),
+    fill: document.getElementById("zenvitoProgressFill"),
+    track: document.getElementById("zenvitoProgressTrack"),
+    status: document.getElementById("zenvitoStatusValue")
+  },
 
-  /* Motion */
-  --sm-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --sm-duration: 0.24s;
-  --sm-theme-duration: 0.35s;
+  currentRunRateValue: document.getElementById("currentRunRateValue"),
+  currentRunRateSubtitle: document.getElementById("currentRunRateSubtitle"),
+  requiredRunRateValue: document.getElementById("requiredRunRateValue"),
+  requiredRunRateSubtitle: document.getElementById("requiredRunRateSubtitle"),
 
-  /* Layout */
-  --sm-header-height: 76px;
-  --sm-gutter: clamp(16px, 3vw, 32px);
-  --sm-max-width: 1360px;
+  projectedMonthEndValue: document.getElementById("projectedMonthEndValue"),
+  projectedMonthEndSubtitle: document.getElementById("projectedMonthEndSubtitle"),
+  gapToTargetValue: document.getElementById("gapToTargetValue"),
+  gapToTargetSubtitle: document.getElementById("gapToTargetSubtitle"),
+
+  pharmaReturnValue: document.getElementById("pharmaReturnValue"),
+  plReturnValue: document.getElementById("plReturnValue"),
+  returnPercentValue: document.getElementById("returnPercentValue")
+};
+
+/* ---------------------------------------------------------------------------
+   2. FORMATTING HELPERS (Indian currency / number / percent)
+   --------------------------------------------------------------------------- */
+
+const inrFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0
+});
+
+const numberFormatter = new Intl.NumberFormat("en-IN");
+
+function formatCurrency(value){
+  if (!Number.isFinite(value)) return "—";
+  return inrFormatter.format(value);
 }
 
-/* ---------------------------------------------------------------------
-   1b. DESIGN TOKENS — DARK
-   Applied automatically via system preference before the theme script
-   runs, and explicitly once the user (or saved localStorage choice)
-   sets [data-theme="dark"] on :root. The attribute selector always wins
-   over the media-query block due to higher specificity.
-   --------------------------------------------------------------------- */
+function formatNumber(value){
+  if (!Number.isFinite(value)) return "—";
+  return numberFormatter.format(Math.round(value));
+}
 
-@media (prefers-color-scheme: dark){
-  :root{
-    --sm-blue-50:  rgba(37, 99, 235, 0.14);
-    --sm-blue-100: rgba(37, 99, 235, 0.20);
-    --sm-blue-500: #5B8DEF;
-    --sm-blue-600: #4F7EDC;
-    --sm-blue-700: #3D67BF;
+function formatPercent(value){
+  if (!Number.isFinite(value)) return "—";
+  return `${value.toFixed(2)}%`;
+}
 
-    --sm-indigo-500: #8385F5;
-    --sm-teal-500:   #2DD4BF;
-    --sm-orange-500: #FB923C;
-    --sm-orange-600: #F97316;
-    --sm-green-500:  #34D399;
-    --sm-green-600:  #10B981;
-    --sm-rose-500:   #FB7185;
-    --sm-red-500:    #F87171;
-    --sm-red-50:     rgba(220, 38, 38, 0.12);
+/* ---------------------------------------------------------------------------
+   2b. BUSINESS-LOGIC HELPERS (new — normalization, status, greeting, avatar)
+   --------------------------------------------------------------------------- */
 
-    --sm-bg:         #0F1420;
-    --sm-surface:     #161D2E;
-    --sm-surface-2:   #1B2438;
-    --sm-border:      #2A3550;
-    --sm-border-soft: #232D45;
+// Auto-detects fraction (0.78) vs whole percent (78) from the sheet and
+// always returns a value on the 0–100 scale.
+function normalizePercent(value){
+  const num = Number(value) || 0;
+  return num <= 1 ? num * 100 : num;
+}
 
-    --sm-ink:       #EDF1F9;
-    --sm-ink-soft:  #A6B0C3;
-    --sm-ink-faint: #6E7994;
+// Maps a percentage to a status color for progress bars / text.
+function getProgressColor(percent){
+  if (percent >= 80) return "var(--success, #22c55e)";
+  if (percent >= 50) return "var(--warning, #f59e0b)";
+  return "var(--danger, #ef4444)";
+}
 
-    --sm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-    --sm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.32);
-    --sm-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.4);
+// Greeting based on system time.
+function getGreeting(){
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
+
+// Initials avatar fallback (data URI — no new DOM elements required).
+function generateInitialsAvatar(name){
+  const initials = String(name || "?")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("") || "?";
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96">
+      <rect width="100%" height="100%" rx="48" fill="#6366f1"/>
+      <text x="50%" y="50%" dy=".35em" text-anchor="middle"
+            font-family="Arial, sans-serif" font-size="36" fill="#ffffff">
+        ${initials}
+      </text>
+    </svg>`.trim();
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+// Company status label based on normalized achievement percentage.
+function getCompanyStatus(pct){
+  if (pct >= 90) return "Excellent";
+  if (pct >= 70) return "Good";
+  if (pct >= 50) return "Average";
+  return "Poor";
+}
+
+// Run rate Ahead/Behind status + daily difference.
+function getRunRateStatus(current, required){
+  const diff = current - required;
+  return {
+    label: diff >= 0 ? "Ahead of Target" : "Behind Target",
+    color: diff >= 0 ? "var(--success, #22c55e)" : "var(--danger, #ef4444)",
+    diff
+  };
+}
+
+// Forecast status per the business tiers.
+function getForecastStatus(projectedSale, target){
+  if (target <= 0) return { label: "—", color: "inherit" };
+  const pct = (projectedSale / target) * 100;
+
+  if (pct >= 100) return { label: "🏆 Target Achieved", color: "var(--success, #22c55e)" };
+  if (pct >= 95)  return { label: "🎯 Almost There", color: "var(--success, #22c55e)" };
+  if (pct >= 80)  return { label: "👍 On Track", color: "var(--warning, #f59e0b)" };
+  if (pct >= 60)  return { label: "⚠ Needs Push", color: "var(--warning, #f59e0b)" };
+  return { label: "🚨 Immediate Attention", color: "var(--danger, #ef4444)" };
+}
+
+// Formats today's date using browser local time (NOT sheet data).
+// Example: "Wednesday, 09 Jul 2026"
+function getFormattedTodayDate(){
+  return new Date().toLocaleDateString("en-IN", {
+    weekday: "long", day: "2-digit", month: "short", year: "numeric"
+  });
+}
+
+// Normalizes the Unit Snapshot's Financial Year value into an "FY ..." label
+// without hardcoding the year — reads whatever the sheet provides.
+function getFinancialYearLabel(rawValue){
+  const value = String(rawValue || "").trim();
+  if (!value || value === "—") return "—";
+  return value.toUpperCase().startsWith("FY") ? value : `FY ${value}`;
+}
+
+/* ---------------------------------------------------------------------------
+   3. ANIMATION HELPERS
+   --------------------------------------------------------------------------- */
+
+function animateValue(el, endValue, { formatter = formatNumber, duration = 700 } = {}){
+  if (!el || !Number.isFinite(endValue)){
+    if (el) el.textContent = "—";
+    return;
+  }
+
+  const startTime = performance.now();
+
+  function tick(now){
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const current = endValue * eased;
+    el.textContent = formatter(current);
+
+    if (progress < 1){
+      requestAnimationFrame(tick);
+    } else {
+      el.textContent = formatter(endValue);
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// Updated: animates the fill smoothly AND colors it based on percent.
+function animateProgress(fillEl, trackEl, percent){
+  if (!fillEl) return;
+  const clamped = Math.max(0, Math.min(100, Number.isFinite(percent) ? percent : 0));
+
+  fillEl.style.inlineSize = "0%";
+  fillEl.style.transition = "inline-size 700ms ease-out, background-color 300ms ease";
+  fillEl.style.backgroundColor = getProgressColor(clamped);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fillEl.style.inlineSize = `${clamped}%`;
+    });
+  });
+
+  if (trackEl){
+    trackEl.setAttribute("aria-valuenow", clamped.toFixed(0));
   }
 }
 
-:root[data-theme="light"]{
-  --sm-blue-50:  #EFF6FF;
-  --sm-blue-100: #DBEAFE;
-  --sm-blue-500: #2563EB;
-  --sm-blue-600: #1D4ED8;
-  --sm-blue-700: #1E40AF;
-
-  --sm-indigo-500: #6366F1;
-  --sm-teal-500:   #0D9488;
-  --sm-orange-500: #F97316;
-  --sm-orange-600: #EA580C;
-  --sm-green-500:  #16A34A;
-  --sm-green-600:  #15803D;
-  --sm-rose-500:   #E11D48;
-  --sm-red-500:    #DC2626;
-  --sm-red-50:     #FEF2F2;
-
-  --sm-bg:          #F4F7FB;
-  --sm-surface:      #FFFFFF;
-  --sm-surface-2:    #F8FAFC;
-  --sm-border:       #E4E9F1;
-  --sm-border-soft:  #EDF1F6;
-
-  --sm-ink:        #101828;
-  --sm-ink-soft:   #5B6478;
-  --sm-ink-faint:  #8A94A6;
-
-  --sm-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --sm-shadow-md: 0 6px 20px rgba(16, 24, 40, 0.07);
-  --sm-shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.12);
-}
-
-:root[data-theme="dark"]{
-  --sm-blue-50:  rgba(37, 99, 235, 0.14);
-  --sm-blue-100: rgba(37, 99, 235, 0.20);
-  --sm-blue-500: #5B8DEF;
-  --sm-blue-600: #4F7EDC;
-  --sm-blue-700: #3D67BF;
-
-  --sm-indigo-500: #8385F5;
-  --sm-teal-500:   #2DD4BF;
-  --sm-orange-500: #FB923C;
-  --sm-orange-600: #F97316;
-  --sm-green-500:  #34D399;
-  --sm-green-600:  #10B981;
-  --sm-rose-500:   #FB7185;
-  --sm-red-500:    #F87171;
-  --sm-red-50:     rgba(220, 38, 38, 0.12);
-
-  --sm-bg:         #0F1420;
-  --sm-surface:     #161D2E;
-  --sm-surface-2:   #1B2438;
-  --sm-border:      #2A3550;
-  --sm-border-soft: #232D45;
-
-  --sm-ink:       #EDF1F9;
-  --sm-ink-soft:  #A6B0C3;
-  --sm-ink-faint: #6E7994;
-
-  --sm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --sm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.32);
-  --sm-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.4);
-}
-
-/* ---------------------------------------------------------------------
-   2. BASE / PAGE
-   --------------------------------------------------------------------- */
-
-.salesman-page{
-  background: var(--sm-bg);
-  color: var(--sm-ink);
-  font-family: var(--sm-font-body);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  transition: background-color var(--sm-theme-duration) var(--sm-ease),
-              color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.salesman-page ::selection{
-  background: var(--sm-blue-100);
-  color: var(--sm-ink);
-}
-
-/* ---------------------------------------------------------------------
-   2b. GLOBAL OVERFLOW GUARD (new)
-   Belt-and-braces rule so html/body/.salesman-page can never scroll
-   horizontally, regardless of what content is added inside sections
-   (including future Sales Details tables). Vertical scrolling is
-   untouched. box-sizing is set globally so padding/border never push
-   an element wider than its declared width on small screens.
-   --------------------------------------------------------------------- */
-
-html,
-body{
-  max-inline-size: 100%;
-  overflow-x: hidden;
-}
-
-.salesman-page{
-  max-inline-size: 100vw;
-  overflow-x: hidden;
-}
-
-.salesman-page,
-.salesman-page *,
-.salesman-page *::before,
-.salesman-page *::after{
-  box-sizing: border-box;
-}
-
-/* ---------------------------------------------------------------------
-   3. HEADER
-   --------------------------------------------------------------------- */
-
-.salesman-header{
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 2vw, 24px);
-  min-height: var(--sm-header-height);
-  padding: 12px var(--sm-gutter);
-  background: color-mix(in srgb, var(--sm-surface) 78%, transparent);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border-block-end: 1px solid var(--sm-border-soft);
-  box-shadow: var(--sm-shadow-sm);
-  transition: background-color var(--sm-theme-duration) var(--sm-ease),
-              border-color var(--sm-theme-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease);
-}
-
-.header-brand{
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.header-logo{
-  block-size: 48px;
-  inline-size: auto;
-  max-inline-size: 170px;
-  object-fit: contain;
-  align-self: center;
-}
-
-.header-welcome{
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-inline-size: 0;
-  flex: 1;
-}
-
-.welcome-line{
-  font-family: var(--sm-font-display);
-  font-weight: 600;
-  font-size: clamp(14px, 1.6vw, 18px);
-  color: var(--sm-ink);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.salesman-name{
-  color: var(--sm-blue-600);
-}
-
-.header-subtitle{
-  margin: 0;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--sm-ink-faint);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.welcome-meta{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-block-start: 2px;
-}
-
-.meta-chip{
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--sm-radius-pill);
-  background: var(--sm-surface-2);
-  border: 1px solid var(--sm-border);
-  font-family: var(--sm-font-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--sm-ink-soft);
-  max-inline-size: 100%;
-  transition: background-color var(--sm-theme-duration) var(--sm-ease),
-              border-color var(--sm-theme-duration) var(--sm-ease),
-              color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.meta-chip i{
-  font-size: 12px;
-  color: var(--sm-blue-500);
-  flex-shrink: 0;
-}
-
-.header-actions{
-  display: flex;
-  align-items: center;
-  gap: clamp(10px, 1.6vw, 16px);
-  flex-shrink: 0;
-  margin-inline-start: auto;
-}
-
-.theme-toggle-btn,
-.notification-btn{
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 42px;
-  block-size: 42px;
-  border-radius: var(--sm-radius-sm);
-  border: 1px solid var(--sm-border);
-  background: var(--sm-surface);
-  color: var(--sm-ink-soft);
-  font-size: 18px;
-  cursor: pointer;
-  transition: border-color var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease),
-              color var(--sm-duration) var(--sm-ease),
-              transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease);
-}
-
-.theme-toggle-btn:hover,
-.notification-btn:hover{
-  border-color: var(--sm-blue-500);
-  color: var(--sm-blue-500);
-  transform: translateY(-2px);
-  box-shadow: var(--sm-shadow-sm);
-}
-
-.theme-toggle-btn:active,
-.notification-btn:active{
-  transform: translateY(0);
-}
-
-.theme-toggle-btn:focus-visible,
-.notification-btn:focus-visible{
-  outline: 2px solid var(--sm-blue-500);
-  outline-offset: 2px;
-}
-
-.theme-toggle-btn i{
-  transition: transform var(--sm-theme-duration) var(--sm-ease);
-}
-
-.theme-toggle-btn[aria-pressed="true"] i{
-  transform: rotate(-24deg) scale(1.05);
-}
-
-.notification-dot{
-  position: absolute;
-  inset-block-start: 6px;
-  inset-inline-end: 7px;
-  inline-size: 9px;
-  block-size: 9px;
-  border-radius: 50%;
-  background: var(--sm-rose-500);
-  border: 2px solid var(--sm-surface);
-}
-
-.notification-dot[hidden]{
-  display: none;
-}
-
-.profile-block{
-  display: flex;
-  align-items: center;
-}
-
-.profile-photo-wrap{
-  position: relative;
-  inline-size: 44px;
-  block-size: 44px;
-  flex-shrink: 0;
-}
-
-.profile-photo{
-  inline-size: 100%;
-  block-size: 100%;
-  max-inline-size: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--sm-surface);
-  box-shadow: 0 0 0 1.5px var(--sm-border), var(--sm-shadow-sm);
-  background: var(--sm-surface-2);
-  transition: box-shadow var(--sm-duration) var(--sm-ease);
-}
-
-.profile-photo-wrap:hover .profile-photo{
-  box-shadow: 0 0 0 1.5px var(--sm-blue-500), var(--sm-shadow-md);
-}
-
-.rank-badge{
-  position: absolute;
-  inset-block-end: -4px;
-  inset-inline-end: -4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-inline-size: 20px;
-  block-size: 20px;
-  padding: 0 5px;
-  border-radius: var(--sm-radius-pill);
-  background: linear-gradient(135deg, var(--sm-orange-500), var(--sm-orange-600));
-  color: #FFFFFF;
-  font-family: var(--sm-font-mono);
-  font-size: 9.5px;
-  font-weight: 600;
-  border: 2px solid var(--sm-surface);
-}
-
-/* ---------------------------------------------------------------------
-   3b. PORTAL NAVIGATION (new)
-   Segmented control below the header for switching between Dashboard
-   and Sales Details. Reuses existing --sm-* tokens only — no new colors
-   introduced, so light/dark mode are supported automatically.
-   --------------------------------------------------------------------- */
-
-.portal-tabs{
-  position: sticky;
-  top: var(--sm-header-height);
-  z-index: 40;
-  display: flex;
-  align-items: stretch;
-  gap: 6px;
-  inline-size: 100%;
-  max-inline-size: var(--sm-max-width);
-  margin-inline: auto;
-  padding: 6px;
-  background: var(--sm-surface-2);
-  border: 1px solid var(--sm-border);
-  border-block-end: 1px solid var(--sm-border);
-  box-shadow: var(--sm-shadow-sm);
-  transition: background-color var(--sm-theme-duration) var(--sm-ease),
-              border-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.portal-tab{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex: 1 1 0;
-  min-inline-size: 0;
-  min-block-size: 44px;
-  padding: 10px 14px;
-  border: none;
-  border-radius: var(--sm-radius-sm);
-  background: transparent;
-  color: var(--sm-ink-soft);
-  font-family: var(--sm-font-body);
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--sm-duration) var(--sm-ease),
-              color var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              transform var(--sm-duration) var(--sm-ease);
-}
-
-.portal-tab i{
-  font-size: 15px;
-  flex-shrink: 0;
-}
-
-.portal-tab span{
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.portal-tab:hover{
-  background: var(--sm-surface);
-  color: var(--sm-ink);
-  transform: translateY(-1px);
-}
-
-.portal-tab:active{
-  transform: translateY(0);
-}
-
-.portal-tab.is-active{
-  background: var(--sm-surface);
-  color: var(--sm-blue-600);
-  box-shadow: var(--sm-shadow-sm);
-}
-
-.portal-tab.is-active:hover{
-  transform: none;
-}
-
-.portal-tab:focus-visible{
-  outline: 2px solid var(--sm-blue-500);
-  outline-offset: 2px;
-}
-
-/* ---------------------------------------------------------------------
-   4. SECTION SCAFFOLDING
-   --------------------------------------------------------------------- */
-
-.dashboard-section{
-  inline-size: 100%;
-  max-inline-size: var(--sm-max-width);
-  margin-inline: auto;
-  padding: clamp(20px, 3vw, 32px) var(--sm-gutter) 0;
-  animation: sm-fade-in 0.4s var(--sm-ease) both;
-}
-
-.dashboard-section:last-of-type{
-  padding-block-end: clamp(20px, 3vw, 32px);
-}
-
-@keyframes sm-fade-in{
-  from{ opacity: 0; transform: translateY(6px); }
-  to{ opacity: 1; transform: translateY(0); }
-}
-
-.section-heading{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-block-end: 16px;
-}
-
-.section-heading h2{
-  font-family: var(--sm-font-display);
-  font-weight: 600;
-  font-size: clamp(16px, 1.8vw, 19px);
-  color: var(--sm-ink);
-  letter-spacing: -0.01em;
-  position: relative;
-  padding-inline-start: 14px;
-}
-
-.section-heading h2::before{
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block-start: 50%;
-  transform: translateY(-50%);
-  inline-size: 4px;
-  block-size: 18px;
-  border-radius: var(--sm-radius-pill);
-  background: linear-gradient(180deg, var(--sm-blue-500), var(--sm-teal-500));
-}
-
-/* ---------------------------------------------------------------------
-   5. KPI GRID (Section 1)
-   --------------------------------------------------------------------- */
-
-.kpi-grid{
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(12px, 1.8vw, 18px);
-}
-
-.kpi-card{
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: clamp(16px, 2vw, 22px);
-  background: var(--sm-surface);
-  border: 1px solid var(--sm-border);
-  border-radius: var(--sm-radius-lg);
-  box-shadow: var(--sm-shadow-sm);
-  overflow: hidden;
-  min-inline-size: 0;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              border-color var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.kpi-card::after{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 100%;
-  block-size: 3px;
-  background: linear-gradient(90deg, var(--sm-blue-500), var(--sm-teal-500));
-  opacity: 0;
-  transition: opacity var(--sm-duration) var(--sm-ease);
-}
-
-.kpi-card:hover{
-  transform: translateY(-4px);
-  box-shadow: var(--sm-shadow-lg);
-  border-color: color-mix(in srgb, var(--sm-blue-500) 30%, var(--sm-border));
-}
-
-.kpi-card:hover::after{
-  opacity: 1;
-}
-
-.kpi-icon{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 40px;
-  block-size: 40px;
-  border-radius: var(--sm-radius-sm);
-  font-size: 19px;
-  flex-shrink: 0;
-  transition: background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.kpi-icon-blue{
-  background: var(--sm-blue-50);
-  color: var(--sm-blue-600);
-}
-
-.kpi-icon-indigo{
-  background: color-mix(in srgb, var(--sm-indigo-500) 14%, transparent);
-  color: var(--sm-indigo-500);
-}
-
-.kpi-icon-teal{
-  background: color-mix(in srgb, var(--sm-teal-500) 14%, transparent);
-  color: var(--sm-teal-500);
-}
-
-.kpi-icon-amber{
-  background: color-mix(in srgb, var(--sm-orange-500) 14%, transparent);
-  color: var(--sm-orange-600);
-}
-
-.kpi-icon-rose{
-  background: color-mix(in srgb, var(--sm-rose-500) 14%, transparent);
-  color: var(--sm-rose-500);
-}
-
-.kpi-label{
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--sm-ink-soft);
-}
-
-.kpi-value{
-  font-family: var(--sm-font-mono);
-  font-size: clamp(20px, 2.4vw, 26px);
-  font-weight: 500;
-  color: var(--sm-ink);
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.kpi-subtitle{
-  font-size: 11.5px;
-  color: var(--sm-ink-faint);
-  line-height: 1.4;
-  overflow-wrap: break-word;
-}
-
-/* Today's Required Sale — completed/achieved single-line centered state */
-
-#todaysRequiredSaleValue:only-child,
-#kpiTodaysRequiredSale .kpi-value{
-  text-align: start;
-}
-
-#kpiTodaysRequiredSale .kpi-value:not([data-numeric]){
-  font-family: var(--sm-font-body);
-  font-size: clamp(15px, 1.8vw, 18px);
-  font-weight: 600;
-}
-
-/* ---------------------------------------------------------------------
-   6. COMPANY PERFORMANCE (Section 2)
-   --------------------------------------------------------------------- */
-
-.company-grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(14px, 1.8vw, 18px);
-}
-
-.company-card{
-  padding: clamp(18px, 2.2vw, 24px);
-  background: var(--sm-surface);
-  border: 1px solid var(--sm-border);
-  border-radius: var(--sm-radius-lg);
-  box-shadow: var(--sm-shadow-sm);
-  min-inline-size: 0;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.company-card:hover{
-  transform: translateY(-3px);
-  box-shadow: var(--sm-shadow-md);
-}
-
-.company-card-header{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-block-end: 16px;
-  min-inline-size: 0;
-}
-
-.company-icon{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 38px;
-  block-size: 38px;
-  border-radius: var(--sm-radius-sm);
-  font-size: 18px;
-  background: var(--sm-surface-2);
-  flex-shrink: 0;
-}
-
-.company-name{
-  font-family: var(--sm-font-display);
-  font-size: 15.5px;
-  font-weight: 600;
-  color: var(--sm-ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-inline-size: 0;
-}
-
-.company-metrics{
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px 16px;
-  margin: 0 0 16px;
-}
-
-.company-metric{
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-inline-size: 0;
-}
-
-.company-metric dt{
-  font-size: 11px;
-  color: var(--sm-ink-faint);
-  font-weight: 500;
-}
-
-.company-metric dd{
-  margin: 0;
-  font-family: var(--sm-font-mono);
-  font-size: 14.5px;
-  font-weight: 500;
-  color: var(--sm-ink);
-  overflow-wrap: break-word;
-  word-break: break-word;
-  transition: color var(--sm-duration) var(--sm-ease);
-}
-
-.progress-track{
-  position: relative;
-  inline-size: 100%;
-  block-size: 8px;
-  border-radius: var(--sm-radius-pill);
-  background: var(--sm-surface-2);
-  border: 1px solid var(--sm-border-soft);
-  overflow: hidden;
-}
-
-.progress-fill{
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  inline-size: 0%;
-  border-radius: var(--sm-radius-pill);
-  transition: inline-size 0.6s var(--sm-ease), background-color 0.3s var(--sm-ease);
-}
-
-/* Company theme accents */
-
-#companyCardPharma .company-icon{
-  background: var(--sm-blue-50);
-}
-
-#companyCardPharma .progress-fill{
-  background: linear-gradient(90deg, var(--sm-blue-500), var(--sm-blue-700));
-}
-
-#companyCardPl .company-icon{
-  background: color-mix(in srgb, var(--sm-orange-500) 14%, transparent);
-}
-
-#companyCardPl .progress-fill{
-  background: linear-gradient(90deg, var(--sm-orange-500), var(--sm-orange-600));
-}
-
-#companyCardZenvito .company-icon{
-  background: color-mix(in srgb, var(--sm-green-500) 14%, transparent);
-}
-
-#companyCardZenvito .progress-fill{
-  background: linear-gradient(90deg, var(--sm-green-500), var(--sm-green-600));
-}
-
-/* ---------------------------------------------------------------------
-   7. RUN RATE (Section 3) & PROJECTION (Section 4)
-   --------------------------------------------------------------------- */
-
-.run-rate-grid,
-.projection-grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(12px, 1.8vw, 18px);
-}
-
-.run-rate-card,
-.projection-card{
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: clamp(18px, 2.2vw, 24px);
-  background: linear-gradient(165deg, var(--sm-surface) 0%, var(--sm-surface-2) 100%);
-  border: 1px solid var(--sm-border);
-  border-radius: var(--sm-radius-lg);
-  box-shadow: var(--sm-shadow-sm);
-  overflow: hidden;
-  min-inline-size: 0;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.run-rate-card:hover,
-.projection-card:hover{
-  transform: translateY(-3px);
-  box-shadow: var(--sm-shadow-md);
-}
-
-.run-rate-card .kpi-icon,
-.projection-card .kpi-icon{
-  margin-block-end: 2px;
-}
-
-.run-rate-card .kpi-value,
-.projection-card .kpi-value{
-  font-size: clamp(22px, 2.6vw, 28px);
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.run-rate-card .kpi-subtitle,
-.projection-card .kpi-subtitle{
-  font-weight: 500;
-  overflow-wrap: break-word;
-}
-
-#currentRunRateCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-teal-500), var(--sm-blue-500));
-}
-
-#requiredRunRateCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-orange-500), var(--sm-orange-600));
-}
-
-#projectedMonthEndCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-blue-500), var(--sm-indigo-500));
-}
-
-#gapToTargetCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-rose-500), var(--sm-red-500));
-}
-
-#requiredRunRateCard .kpi-value,
-#gapToTargetCard .kpi-value{
-  color: var(--sm-orange-600);
-}
-
-/* ---------------------------------------------------------------------
-   8. RETURNS (Section 5) — soft red / professional danger styling
-   --------------------------------------------------------------------- */
-
-.returns-grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(12px, 1.8vw, 18px);
-}
-
-.returns-card{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: clamp(16px, 2vw, 20px);
-  background: var(--sm-surface);
-  border: 1px solid var(--sm-border);
-  border-inline-start: 3px solid var(--sm-red-500);
-  border-radius: var(--sm-radius-md);
-  box-shadow: var(--sm-shadow-sm);
-  min-inline-size: 0;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.returns-card:hover{
-  transform: translateY(-3px);
-  box-shadow: var(--sm-shadow-md);
-}
-
-.returns-card .kpi-value{
-  color: var(--sm-red-500);
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.returns-card .kpi-icon{
-  background: var(--sm-red-50);
-  color: var(--sm-red-500);
-}
-
-/* ---------------------------------------------------------------------
-   9. LIST CARDS — Focus Products (6) & Announcements (7)
-   --------------------------------------------------------------------- */
-
-.list-card{
-  background: var(--sm-surface);
-  border: 1px solid var(--sm-border);
-  border-radius: var(--sm-radius-lg);
-  box-shadow: var(--sm-shadow-sm);
-  padding: clamp(14px, 2vw, 18px);
-  transition: background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.scrollable-list{
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-block-size: 280px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--sm-border) transparent;
-}
-
-.scrollable-list::-webkit-scrollbar{
-  inline-size: 7px;
-}
-
-.scrollable-list::-webkit-scrollbar-track{
-  background: transparent;
-}
-
-.scrollable-list::-webkit-scrollbar-thumb{
-  background: var(--sm-border);
-  border-radius: var(--sm-radius-pill);
-}
-
-.scrollable-list::-webkit-scrollbar-thumb:hover{
-  background: var(--sm-ink-faint);
-}
-
-.scrollable-list li:not(.empty-state){
-  padding: 12px 14px;
-  border-radius: var(--sm-radius-sm);
-  background: var(--sm-surface-2);
-  border: 1px solid var(--sm-border-soft);
-  font-size: 13.5px;
-  color: var(--sm-ink);
-  overflow-wrap: break-word;
-  transition: background-color var(--sm-duration) var(--sm-ease),
-              transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease);
-}
-
-.scrollable-list li:not(.empty-state):hover{
-  background: var(--sm-blue-50);
-  transform: translateX(2px);
-  box-shadow: var(--sm-shadow-sm);
-}
-
-.empty-state{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 36px 16px;
-  text-align: center;
-  color: var(--sm-ink-faint);
-}
-
-.empty-state i{
-  font-size: 26px;
-  color: var(--sm-ink-faint);
-  opacity: 0.7;
-}
-
-.empty-state p{
-  margin: 0;
-  font-size: 13px;
-  max-inline-size: 220px;
-}
-
-/* ---------------------------------------------------------------------
-   10. FOOTER
-   --------------------------------------------------------------------- */
-
-.salesman-footer{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 18px var(--sm-gutter) 26px;
-  max-inline-size: var(--sm-max-width);
-  margin-inline: auto;
-  inline-size: 100%;
-  font-family: var(--sm-font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.03em;
-  color: var(--sm-ink-faint);
-  border-block-start: 1px solid var(--sm-border-soft);
-}
-
-.salesman-footer span{
-  overflow-wrap: break-word;
-  min-inline-size: 0;
-}
-
-/* ---------------------------------------------------------------------
-   11. RESPONSIVE — Tablet & Desktop
-   --------------------------------------------------------------------- */
-
-@media (min-width: 420px){
-  .header-actions{
-    gap: clamp(8px, 1.4vw, 16px);
+/* ---------------------------------------------------------------------------
+   4. SESSION HELPERS
+   --------------------------------------------------------------------------- */
+
+function getLoggedInUser(){
+  try {
+    const raw = sessionStorage.getItem("user");
+    if (!raw) return null;
+
+    const user = JSON.parse(raw);
+    if (!user || !user.email) return null;
+
+    return user;
+  } catch (err) {
+    console.error("Failed to read logged-in user from sessionStorage:", err);
+    return null;
   }
 }
 
-@media (min-width: 560px){
-  .kpi-grid{
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* ---------------------------------------------------------------------------
+   4b. THEME TOGGLE (light / dark) — localStorage persisted, system-aware
+   --------------------------------------------------------------------------- */
 
-  .returns-grid{
-    grid-template-columns: repeat(3, 1fr);
-  }
+const THEME_STORAGE_KEY = "apdpl-theme";
 
-  .run-rate-grid,
-  .projection-grid{
-    grid-template-columns: repeat(2, 1fr);
+function getSystemPreferredTheme(){
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function getSavedTheme(){
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (err) {
+    console.error("Failed to read saved theme from localStorage:", err);
+    return null;
   }
 }
 
-@media (min-width: 640px){
-  .portal-tab{
-    flex: 0 1 auto;
-    padding: 10px 24px;
+function saveTheme(theme){
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (err) {
+    console.error("Failed to save theme to localStorage:", err);
   }
 }
 
-@media (min-width: 860px){
-  .company-grid{
-    grid-template-columns: repeat(3, 1fr);
+function updateThemeToggleIcon(theme){
+  if (!dom.themeToggleBtn) return;
+
+  const icon = dom.themeToggleBtn.querySelector("i");
+  if (icon){
+    icon.classList.remove("bi-moon-stars", "bi-sun");
+    icon.classList.add(theme === "dark" ? "bi-sun" : "bi-moon-stars");
+  }
+
+  dom.themeToggleBtn.setAttribute("aria-pressed", String(theme === "dark"));
+  dom.themeToggleBtn.setAttribute(
+    "aria-label",
+    theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+  );
+}
+
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  updateThemeToggleIcon(theme);
+}
+
+function toggleTheme(){
+  const current = document.documentElement.getAttribute("data-theme") || getSystemPreferredTheme();
+  const next = current === "dark" ? "light" : "dark";
+  applyTheme(next);
+  saveTheme(next);
+}
+
+function initThemeToggle(){
+  const initialTheme = getSavedTheme() || getSystemPreferredTheme();
+  applyTheme(initialTheme);
+
+  if (dom.themeToggleBtn){
+    dom.themeToggleBtn.addEventListener("click", toggleTheme);
   }
 }
 
-@media (min-width: 1080px){
-  .kpi-grid{
-    grid-template-columns: repeat(6, 1fr);
-  }
+/* ---------------------------------------------------------------------------
+   4c. PORTAL TABS (new — Dashboard / Sales Details switching)
+   No page reload, no additional API calls — purely toggles visibility and
+   remembers the last-selected tab in sessionStorage.
+   --------------------------------------------------------------------------- */
 
-  .header-welcome{
-    flex-direction: row;
-    align-items: baseline;
-    gap: 16px;
-  }
+const PORTAL_TAB_STORAGE_KEY = "salesmanPortalTab";
 
-  .welcome-line{
-    white-space: normal;
-  }
-
-  .header-subtitle{
-    order: 2;
-  }
-
-  .welcome-meta{
-    order: 3;
-    margin-block-start: 0;
+function getSavedPortalTab(){
+  try {
+    const value = sessionStorage.getItem(PORTAL_TAB_STORAGE_KEY);
+    return value === "dashboard" || value === "details" ? value : null;
+  } catch (err) {
+    console.error("Failed to read saved portal tab from sessionStorage:", err);
+    return null;
   }
 }
 
-@media (max-width: 419px){
-  .meta-chip span:last-child{
-    max-inline-size: 92px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: bottom;
+function savePortalTab(tabName){
+  try {
+    sessionStorage.setItem(PORTAL_TAB_STORAGE_KEY, tabName);
+  } catch (err) {
+    console.error("Failed to save portal tab to sessionStorage:", err);
   }
 }
 
-/* ---------------------------------------------------------------------
-   11c. TABLET — Logo sizing (max-width: 768px)
-   Header logo only; no other tablet layout, spacing, or color changes.
-   --------------------------------------------------------------------- */
+function activatePortalTab(tabName){
+  const isDashboard = tabName === "dashboard";
 
-@media (max-width: 768px){
-  .header-logo{
-    block-size: 42px;
-    max-inline-size: 150px;
+  if (dom.dashboardView){
+    dom.dashboardView.hidden = !isDashboard;
+  }
+  if (dom.salesDetailsView){
+    dom.salesDetailsView.hidden = isDashboard;
+  }
+
+  if (dom.dashboardTabBtn){
+    dom.dashboardTabBtn.classList.toggle("is-active", isDashboard);
+    dom.dashboardTabBtn.setAttribute("aria-selected", String(isDashboard));
+    dom.dashboardTabBtn.tabIndex = isDashboard ? 0 : -1;
+  }
+
+  if (dom.detailsTabBtn){
+    dom.detailsTabBtn.classList.toggle("is-active", !isDashboard);
+    dom.detailsTabBtn.setAttribute("aria-selected", String(!isDashboard));
+    dom.detailsTabBtn.tabIndex = isDashboard ? -1 : 0;
+  }
+
+  savePortalTab(tabName);
+}
+
+function initPortalTabs(){
+  if (dom.dashboardTabBtn){
+    dom.dashboardTabBtn.addEventListener("click", () => activatePortalTab("dashboard"));
+  }
+
+  if (dom.detailsTabBtn){
+    dom.detailsTabBtn.addEventListener("click", () => activatePortalTab("details"));
+  }
+
+  // Restore last-selected tab (defaults to "dashboard" if none saved).
+  const savedTab = getSavedPortalTab() || "dashboard";
+  activatePortalTab(savedTab);
+}
+
+/* ---------------------------------------------------------------------------
+   5. LOADING / ERROR STATE HELPERS
+   --------------------------------------------------------------------------- */
+
+function setLoadingState(isLoading){
+  if (!dom.page) return;
+  dom.page.setAttribute("aria-busy", String(isLoading));
+}
+
+function setFatalMessage(message){
+  const subtitleEls = [
+    dom.mtdSaleSubtitle, dom.monthlyTargetSubtitle, dom.achievementSubtitle,
+    dom.pendingTargetSubtitle, dom.todaysRequiredSaleSubtitle, dom.overallUobSubtitle
+  ];
+
+  subtitleEls.forEach((el) => {
+    if (el) el.textContent = message;
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   6. SALESMAN LOOKUP (exact sheet column name — Email)
+   --------------------------------------------------------------------------- */
+
+function findSalesmanRow(salesmanSnapshot, email){
+  if (!Array.isArray(salesmanSnapshot)) return null;
+
+  return salesmanSnapshot.find(
+    (row) =>
+      String(row.Email).trim().toLowerCase() ===
+      String(email).trim().toLowerCase()
+  ) || null;
+}
+
+/* ---------------------------------------------------------------------------
+   7. HEADER POPULATION — greeting + avatar fallback added
+   --------------------------------------------------------------------------- */
+
+function populateHeader(salesmanRow, unit, sessionUser, rank){
+  const name = salesmanRow.SalesmanName || "—";
+
+  if (dom.salesmanName){
+    dom.salesmanName.textContent = `${getGreeting()}, ${name}`;
+  }
+
+  if (dom.profilePhoto){
+    if (sessionUser?.photo){
+      dom.profilePhoto.src = sessionUser.photo;
+    } else {
+      dom.profilePhoto.src = generateInitialsAvatar(name);
+    }
+    dom.profilePhoto.alt = `${name} profile photo`;
+  }
+
+  if (dom.rankBadge){
+    dom.rankBadge.textContent = rank ? `#${rank}` : "—";
+  }
+
+  if (dom.financialMonthChip){
+    dom.financialMonthChip.textContent = getFinancialYearLabel(unit?.["Financial Year"]);
+  }
+
+  if (dom.todaysDateChip){
+    // Uses the browser's local time, NOT the sheet's Today's Date / Financial
+    // Year Start Date — always reflects the visitor's actual current date.
+    dom.todaysDateChip.textContent = getFormattedTodayDate();
   }
 }
 
-/* ---------------------------------------------------------------------
-   11b. MOBILE HARDENING (<=480px, and extra-narrow 320–360px devices)
-   Responsive-only fixes — no new visual style, no color/token changes,
-   no redesign. Desktop (>=1080px) rules above are untouched.
-   --------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   7b. RANK CALCULATION (based on Overall Sale, not Role)
+   --------------------------------------------------------------------------- */
 
-@media (max-width: 480px){
+function computeSalesmanRank(salesmanSnapshot, email){
+  if (!Array.isArray(salesmanSnapshot) || salesmanSnapshot.length === 0) return null;
 
-  /* ---- Header: keep logo, greeting, chips, and action buttons inside
-     the viewport; stack gracefully instead of clipping/overflowing. --- */
+  const ranked = salesmanSnapshot
+    .map((row) => ({
+      email: row.Email,
+      overallSale:
+        (Number(row.AchievementPharma) || 0) +
+        (Number(row.AchievementPI) || 0) +
+        (Number(row.AchievementZenvito) || 0)
+    }))
+    .sort((a, b) => b.overallSale - a.overallSale);
 
-  .salesman-header{
-    flex-wrap: wrap;
-    row-gap: 10px;
-    padding-block: 10px;
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const index = ranked.findIndex(
+    (row) => String(row.email).trim().toLowerCase() === normalizedEmail
+  );
+
+  return index === -1 ? null : index + 1;
+}
+
+/* ---------------------------------------------------------------------------
+   8. OVERALL KPI CALCULATION + POPULATION — required sale edge cases + wording
+   --------------------------------------------------------------------------- */
+
+function computeOverallKpis(salesmanRow, unit){
+  const targetPharma = Number(salesmanRow.TargetPharma) || 0;
+  const targetPI = Number(salesmanRow.TargetPI) || 0;
+  const targetZenvito = Number(salesmanRow.TargetZenvito) || 0;
+
+  const achievementPharma = Number(salesmanRow.AchievementPharma) || 0;
+  const achievementPI = Number(salesmanRow.AchievementPI) || 0;
+  const achievementZenvito = Number(salesmanRow.AchievementZenvito) || 0;
+
+  const uobPharma = Number(salesmanRow.UOBPharma) || 0;
+  const uobPI = Number(salesmanRow.UOBPI) || 0;
+  const uobZenvito = Number(salesmanRow.UOBZenvito) || 0;
+
+  const overallTarget = targetPharma + targetPI + targetZenvito;
+  const overallSale = achievementPharma + achievementPI + achievementZenvito;
+  const pendingTarget = overallTarget - overallSale;
+  const overallAchievementPct = overallTarget > 0 ? (overallSale / overallTarget) * 100 : 0;
+  const overallUob = uobPharma + uobPI + uobZenvito;
+
+  const remainingWorkingDays = Number(unit?.["Remaining Working Days"]) || 0;
+
+  const isPeriodCompleted = remainingWorkingDays <= 0;
+  const isTargetAchieved = pendingTarget <= 0;
+  const todaysRequiredSale = (!isPeriodCompleted && !isTargetAchieved)
+    ? pendingTarget / remainingWorkingDays
+    : 0;
+
+  return {
+    overallTarget,
+    overallSale,
+    pendingTarget,
+    overallAchievementPct,
+    overallUob,
+    todaysRequiredSale,
+    remainingWorkingDays,
+    isPeriodCompleted,
+    isTargetAchieved
+  };
+}
+
+function populateOverallKpis(kpis){
+  animateValue(dom.mtdSaleValue, kpis.overallSale, { formatter: formatCurrency });
+  animateValue(dom.monthlyTargetValue, kpis.overallTarget, { formatter: formatCurrency });
+  animateValue(dom.achievementValue, kpis.overallAchievementPct, { formatter: formatPercent });
+  animateValue(dom.pendingTargetValue, kpis.pendingTarget, { formatter: formatCurrency });
+  animateValue(dom.overallUobValue, kpis.overallUob, { formatter: formatNumber });
+
+  if (dom.todaysRequiredSaleValue){
+    if (kpis.isPeriodCompleted){
+      dom.todaysRequiredSaleValue.textContent = "Target Period Completed";
+    } else if (kpis.isTargetAchieved){
+      dom.todaysRequiredSaleValue.textContent = "Target Achieved 🎉";
+    } else {
+      animateValue(dom.todaysRequiredSaleValue, kpis.todaysRequiredSale, { formatter: formatCurrency });
+    }
   }
 
-  .header-logo{
-    block-size: 36px;
-    max-inline-size: 120px;
+  if (dom.mtdSaleSubtitle) dom.mtdSaleSubtitle.textContent = "Month to date";
+  if (dom.monthlyTargetSubtitle) dom.monthlyTargetSubtitle.textContent = "Assigned this month";
+  if (dom.achievementSubtitle) dom.achievementSubtitle.textContent = "Against monthly target";
+  if (dom.pendingTargetSubtitle) dom.pendingTargetSubtitle.textContent = "Remaining to achieve";
+  if (dom.todaysRequiredSaleSubtitle){
+    dom.todaysRequiredSaleSubtitle.textContent = kpis.isPeriodCompleted
+      ? "No working days remaining"
+      : kpis.isTargetAchieved
+        ? "Target already met — great work!"
+        : `Over ${formatNumber(kpis.remainingWorkingDays)} working day(s) left`;
+  }
+  if (dom.overallUobSubtitle) dom.overallUobSubtitle.textContent = "Units on board";
+}
+
+/* ---------------------------------------------------------------------------
+   9. COMPANY CARDS (Pharma / PI (PL) / Zenvito) — normalized %, status shown
+      separately (not mixed into the value), skipped gracefully if no status
+      element exists in the HTML.
+   --------------------------------------------------------------------------- */
+
+function populateCompanyCard(refs, target, achievement, achievementPct, uob){
+  const pending = target - achievement;
+  const normalizedPct = normalizePercent(achievementPct);
+  const status = getCompanyStatus(normalizedPct);
+
+  animateValue(refs.sale, achievement, { formatter: formatCurrency });
+  animateValue(refs.target, target, { formatter: formatCurrency });
+
+  // Animate ONLY the percentage — no status text mixed in.
+  animateValue(refs.achievement, normalizedPct, { formatter: formatPercent });
+  if (refs.achievement){
+    refs.achievement.style.color = getProgressColor(normalizedPct);
   }
 
-  .header-welcome{
-    flex-basis: 100%;
-    order: 3;
+  // Status goes in its own element if present; otherwise skipped — never breaks.
+  if (refs.status){
+    refs.status.textContent = status;
+    refs.status.style.color = getProgressColor(normalizedPct);
   }
 
-  .welcome-line{
-    white-space: normal;
-    overflow-wrap: break-word;
+  animateValue(refs.pending, pending, { formatter: formatCurrency });
+  animateValue(refs.uob, uob, { formatter: formatNumber });
+  animateProgress(refs.fill, refs.track, normalizedPct);
+}
+
+function populateCompanyCards(salesmanRow){
+  const targetPharma = Number(salesmanRow.TargetPharma) || 0;
+  const targetPI = Number(salesmanRow.TargetPI) || 0;
+  const targetZenvito = Number(salesmanRow.TargetZenvito) || 0;
+
+  const achievementPharma = Number(salesmanRow.AchievementPharma) || 0;
+  const achievementPI = Number(salesmanRow.AchievementPI) || 0;
+  const achievementZenvito = Number(salesmanRow.AchievementZenvito) || 0;
+
+  const achievementPercentPharma = Number(salesmanRow.AchievementPercentPharma) || 0;
+  const achievementPercentPI = Number(salesmanRow.AchievementPercentPI) || 0;
+  const achievementPercentZenvito = Number(salesmanRow.AchievementPercentZenvito) || 0;
+
+  const uobPharma = Number(salesmanRow.UOBPharma) || 0;
+  const uobPI = Number(salesmanRow.UOBPI) || 0;
+  const uobZenvito = Number(salesmanRow.UOBZenvito) || 0;
+
+  populateCompanyCard(dom.pharma, targetPharma, achievementPharma, achievementPercentPharma, uobPharma);
+  populateCompanyCard(dom.pl, targetPI, achievementPI, achievementPercentPI, uobPI);
+  populateCompanyCard(dom.zenvito, targetZenvito, achievementZenvito, achievementPercentZenvito, uobZenvito);
+}
+
+/* ---------------------------------------------------------------------------
+   10. RUN RATE — status label + daily difference in existing subtitle
+   --------------------------------------------------------------------------- */
+
+function computeRunRate(kpis, unit){
+  const daysCompleted = Number(unit?.["Days Completed"]) || 0;
+  const remainingWorkingDays = kpis.remainingWorkingDays;
+
+  const currentRunRate = daysCompleted > 0 ? kpis.overallSale / daysCompleted : 0;
+  const requiredRunRate = remainingWorkingDays > 0
+    ? kpis.pendingTarget / remainingWorkingDays
+    : 0;
+
+  return { currentRunRate, requiredRunRate, daysCompleted };
+}
+
+function populateRunRate(runRate){
+  animateValue(dom.currentRunRateValue, runRate.currentRunRate, { formatter: formatCurrency });
+  animateValue(dom.requiredRunRateValue, runRate.requiredRunRate, { formatter: formatCurrency });
+
+  const status = getRunRateStatus(runRate.currentRunRate, runRate.requiredRunRate);
+
+  if (dom.currentRunRateSubtitle){
+    dom.currentRunRateSubtitle.textContent = runRate.daysCompleted > 0
+      ? `Based on ${formatNumber(runRate.daysCompleted)} day(s) completed`
+      : "Average daily sale so far";
   }
-
-  .header-actions{
-    gap: 8px;
-    margin-inline-start: 0;
-  }
-
-  .meta-chip{
-    font-size: 10px;
-    padding: 4px 8px;
-  }
-
-  .meta-chip span:last-child{
-    max-inline-size: 72px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: bottom;
-  }
-
-  /* ---- Touch targets: buttons stay comfortably tappable ---- */
-
-  .theme-toggle-btn,
-  .notification-btn{
-    inline-size: 44px;
-    block-size: 44px;
-  }
-
-  .profile-photo-wrap{
-    inline-size: 40px;
-    block-size: 40px;
-  }
-
-  /* ---- Portal tabs: full width, equal segments, 44px touch target -- */
-
-  .portal-tabs{
-    top: auto;
-    position: static;
-    padding: 5px;
-    gap: 4px;
-  }
-
-  .portal-tab{
-    padding: 10px 8px;
-    font-size: 12.5px;
-    gap: 6px;
-  }
-
-  .portal-tab i{
-    font-size: 14px;
-  }
-
-  /* ---- Section / card spacing: reduce padding, keep desktop as-is -- */
-
-  .dashboard-section{
-    padding-inline: 14px;
-    padding-block-start: 18px;
-  }
-
-  .section-heading h2{
-    font-size: 15px;
-  }
-
-  .kpi-card{
-    padding: 14px;
-    gap: 8px;
-  }
-
-  .kpi-icon{
-    inline-size: 34px;
-    block-size: 34px;
-    font-size: 16px;
-  }
-
-  .kpi-label{
-    font-size: 11.5px;
-  }
-
-  .kpi-value{
-    font-size: 18px;
-  }
-
-  .kpi-subtitle{
-    font-size: 11px;
-  }
-
-  .company-card{
-    padding: 16px;
-  }
-
-  .company-icon{
-    inline-size: 32px;
-    block-size: 32px;
-    font-size: 16px;
-  }
-
-  .company-name{
-    font-size: 14px;
-  }
-
-  .company-metrics{
-    gap: 10px 12px;
-  }
-
-  .company-metric dd{
-    font-size: 13px;
-  }
-
-  .run-rate-card,
-  .projection-card{
-    padding: 16px;
-  }
-
-  .run-rate-card .kpi-value,
-  .projection-card .kpi-value{
-    font-size: 20px;
-  }
-
-  .returns-card{
-    padding: 14px;
-  }
-
-  .list-card{
-    padding: 12px;
-  }
-
-  .scrollable-list li:not(.empty-state){
-    font-size: 13px;
-    padding: 10px 12px;
-  }
-
-  .empty-state{
-    padding: 28px 12px;
-  }
-
-  .empty-state i{
-    font-size: 22px;
-  }
-
-  /* ---- Footer: wrap and center on very narrow screens ---- */
-
-  .salesman-footer{
-    justify-content: center;
-    text-align: center;
-    padding-inline: 14px;
+  if (dom.requiredRunRateSubtitle){
+    dom.requiredRunRateSubtitle.textContent =
+      `${status.label} · Diff ${formatCurrency(Math.abs(status.diff))}/day`;
+    dom.requiredRunRateSubtitle.style.color = status.color;
   }
 }
 
-/* Extra-narrow phones (iPhone SE / small Android — 320–360px) */
-@media (max-width: 360px){
+/* ---------------------------------------------------------------------------
+   11. PROJECTION — forecast tiers per business rules
+   --------------------------------------------------------------------------- */
 
-  .header-logo{
-    block-size: 32px;
-    max-inline-size: 110px;
+function computeProjection(kpis, runRate, unit){
+  const totalWorkingDays = Number(unit?.["Total Working Days"]) || 0;
+
+  const projectedMonthEndSale = runRate.currentRunRate * totalWorkingDays;
+  const gapToTarget = kpis.overallTarget - projectedMonthEndSale;
+
+  return { projectedMonthEndSale, gapToTarget };
+}
+
+function populateProjection(projection, kpis){
+  animateValue(dom.projectedMonthEndValue, projection.projectedMonthEndSale, { formatter: formatCurrency });
+  animateValue(dom.gapToTargetValue, projection.gapToTarget, { formatter: formatCurrency });
+
+  const forecast = getForecastStatus(projection.projectedMonthEndSale, kpis.overallTarget);
+
+  if (dom.projectedMonthEndSubtitle){
+    dom.projectedMonthEndSubtitle.textContent = `At current run rate · ${forecast.label}`;
+    dom.projectedMonthEndSubtitle.style.color = forecast.color;
   }
-
-  .welcome-line{
-    font-size: 13px;
-  }
-
-  .header-subtitle{
-    font-size: 10.5px;
-  }
-
-  .portal-tab span{
-    max-inline-size: 76px;
-  }
-
-  .portal-tab{
-    font-size: 11.5px;
-    padding: 9px 6px;
-  }
-
-  .kpi-value{
-    font-size: 16px;
-  }
-
-  .company-name{
-    font-size: 13px;
+  if (dom.gapToTargetSubtitle){
+    dom.gapToTargetSubtitle.textContent = projection.gapToTarget > 0
+      ? "Projected shortfall"
+      : "Projected surplus";
   }
 }
 
-/* ---------------------------------------------------------------------
-   12. ACCESSIBILITY
-   --------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   12. RETURNS
+   Summary sheet has NO Email column — filtered by SalesmanName ("Salesman").
+   --------------------------------------------------------------------------- */
 
-:focus-visible{
-  outline: 2px solid var(--sm-blue-500);
-  outline-offset: 2px;
+function computeReturns(summary, salesmanName){
+  const normalizedName = String(salesmanName).trim().toLowerCase();
+
+  const ownRows = Array.isArray(summary)
+    ? summary.filter((row) => String(row.Salesman).trim().toLowerCase() === normalizedName)
+    : [];
+
+  const pharmaRows = ownRows.filter((row) => row.Company === "Pharma");
+  const plRows = ownRows.filter((row) => row.Company === "PL");
+
+  const sumReturn = (rows) =>
+    rows.reduce((total, row) => total + (Number(row["Return Value"]) || 0), 0);
+
+  const sumSale = (rows) =>
+    rows.reduce((total, row) => total + (Number(row["Sales Value"]) || 0), 0);
+
+  const pharmaReturn = sumReturn(pharmaRows);
+  const plReturn = sumReturn(plRows);
+
+  const totalReturn = pharmaReturn + plReturn;
+  const totalSale = sumSale(pharmaRows) + sumSale(plRows);
+  const returnPercent = totalSale > 0 ? (totalReturn / totalSale) * 100 : 0;
+
+  return { pharmaReturn, plReturn, returnPercent };
 }
 
-@media (prefers-reduced-motion: reduce){
-  .salesman-page *{
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
+function populateReturns(returns){
+  animateValue(dom.pharmaReturnValue, returns.pharmaReturn, { formatter: formatCurrency });
+  animateValue(dom.plReturnValue, returns.plReturn, { formatter: formatCurrency });
+  animateValue(dom.returnPercentValue, returns.returnPercent, { formatter: formatPercent });
+}
+
+/* ---------------------------------------------------------------------------
+   13. INIT / ORCHESTRATION
+   --------------------------------------------------------------------------- */
+
+async function initSalesmanDashboard(){
+  setLoadingState(true);
+
+  const sessionUser = getLoggedInUser();
+
+  if (!sessionUser){
+    setFatalMessage("Please sign in again to view your dashboard.");
+    setLoadingState(false);
+    return;
+  }
+
+  try {
+    const data = await fetchFromAppsScript();
+    if (!data) {
+        throw new Error("Unable to load dashboard data.");
+    }
+    const { summary, salesmanSnapshot, unitSnapshot } = data;
+
+    // unitSnapshot may arrive as an object or as an array containing one object.
+    const unit = Array.isArray(unitSnapshot) ? unitSnapshot[0] : unitSnapshot;
+
+    const salesmanRow = findSalesmanRow(salesmanSnapshot, sessionUser.email);
+
+    if (!salesmanRow){
+      setFatalMessage("We couldn't find performance data for your account. Contact your administrator.");
+      setLoadingState(false);
+      return;
+    }
+
+    const rank = computeSalesmanRank(salesmanSnapshot, sessionUser.email);
+    populateHeader(salesmanRow, unit, sessionUser, rank);
+
+    const overallKpis = computeOverallKpis(salesmanRow, unit);
+    populateOverallKpis(overallKpis);
+
+    populateCompanyCards(salesmanRow);
+
+    const runRate = computeRunRate(overallKpis, unit);
+    populateRunRate(runRate);
+
+    const projection = computeProjection(overallKpis, runRate, unit);
+    populateProjection(projection, overallKpis);
+
+    const returns = computeReturns(summary, salesmanRow.SalesmanName);
+    populateReturns(returns);
+
+  } catch (err) {
+    console.error("Failed to load salesman dashboard:", err);
+    setFatalMessage("Dashboard data is temporarily unavailable. Please try again shortly.");
+  } finally {
+    setLoadingState(false);
   }
 }
 
-/* ---------------------------------------------------------------------
-   13. FUTURE TABLE SAFETY NET (Sales Details module)
-   Ensures that if table markup is ever placed directly inside
-   #dashboardView / #salesDetailsView without its own dedicated
-   stylesheet, any horizontal overflow it produces is contained to a
-   scrollable wrapper rather than the page. Purely defensive — does not
-   affect any existing selector or visual style.
-   --------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   14. ENTRY POINT
+   Theme is applied immediately (no need to wait on the API call), portal
+   tabs are wired next, then the dashboard data load kicks off. Single set
+   of listeners — no duplicates.
+   --------------------------------------------------------------------------- */
 
-#dashboardView,
-#salesDetailsView{
-  max-inline-size: 100%;
-  overflow-x: hidden;
+function bootSalesmanDashboard(){
+  initThemeToggle();
+  initPortalTabs();
+  initSalesmanDashboard();
 }
 
-#dashboardView table,
-#salesDetailsView table{
-  max-inline-size: 100%;
-}
-
-#dashboardView img,
-#salesDetailsView img,
-.salesman-page img{
-  max-inline-size: 100%;
-  block-size: auto;
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", bootSalesmanDashboard);
+} else {
+  bootSalesmanDashboard();
 }

@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <link rel="stylesheet" href="../css/salesman.css">
+  <link rel="stylesheet" href="../css/sales-analysis.css">
 </head>
 <body>
 
@@ -406,12 +407,219 @@
     </div>
     <!-- ================= END DASHBOARD VIEW ================= -->
 
-    <!-- ================= SALES DETAILS VIEW (Tab 2 — placeholder) ================= -->
+    <!-- ================= SALES DETAILS VIEW (Tab 2) ================= -->
     <div id="salesDetailsView" role="tabpanel" aria-labelledby="detailsTabBtn" hidden>
-      <section class="dashboard-section" id="salesDetailsPlaceholderSection">
-        <h2>Sales Details</h2>
-        <p>Sales Details module will be loaded here.</p>
+
+      <!-- ================= SECTION — SALES ANALYSIS TABS ================= -->
+      <section class="dashboard-section" id="salesAnalysisSection" aria-labelledby="salesAnalysisTitle">
+        <div class="section-heading">
+          <h2 id="salesAnalysisTitle">Sales Analysis</h2>
+        </div>
+
+        <!-- Tab navigation (ARIA tabs pattern). Switching is handled by JS
+             elsewhere — this markup only defines structure and the default
+             visible panel via the native `hidden` attribute. -->
+        <div class="tabs-nav" id="salesAnalysisTabs" role="tablist" aria-label="Sales analysis views">
+          <button
+            type="button"
+            class="tab-btn is-active"
+            id="dayWiseTabBtn"
+            role="tab"
+            aria-selected="true"
+            aria-controls="dayWisePanel">
+            <span class="tab-icon" aria-hidden="true">📅</span>
+            <span class="tab-label">Day Wise</span>
+          </button>
+
+          <button
+            type="button"
+            class="tab-btn"
+            id="customerWiseTabBtn"
+            role="tab"
+            aria-selected="false"
+            aria-controls="customerWisePanel"
+            tabindex="-1">
+            <span class="tab-icon" aria-hidden="true">👥</span>
+            <span class="tab-label">Customer Wise</span>
+          </button>
+
+          <button
+            type="button"
+            class="tab-btn"
+            id="routeWiseTabBtn"
+            role="tab"
+            aria-selected="false"
+            aria-controls="routeWisePanel"
+            tabindex="-1">
+            <span class="tab-icon" aria-hidden="true">🗺</span>
+            <span class="tab-label">Route Wise</span>
+          </button>
+        </div>
+
+        <!-- ============ TAB PANEL 1 — DAY WISE ============ -->
+        <div
+          class="tab-panel"
+          id="dayWisePanel"
+          role="tabpanel"
+          aria-labelledby="dayWiseTabBtn"
+          tabindex="0">
+
+          <!-- Summary card -->
+          <div class="kpi-grid analysis-summary-grid" id="dayWiseSummaryGrid">
+
+            <article class="kpi-card" id="dayWiseTotalSaleCard">
+              <div class="kpi-icon kpi-icon-blue">
+                <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+              </div>
+              <p class="kpi-label">Total Sale</p>
+              <p class="kpi-value" id="dayWiseTotalSale">—</p>
+            </article>
+
+            <article class="kpi-card" id="dayWiseTotalReturnCard">
+              <div class="kpi-icon kpi-icon-rose">
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+              </div>
+              <p class="kpi-label">Total Return</p>
+              <p class="kpi-value" id="dayWiseTotalReturn">—</p>
+            </article>
+
+            <article class="kpi-card" id="dayWiseTotalNetSaleCard">
+              <div class="kpi-icon kpi-icon-teal">
+                <i class="bi bi-cash-stack" aria-hidden="true"></i>
+              </div>
+              <p class="kpi-label">Total Net Sale</p>
+              <p class="kpi-value" id="dayWiseTotalNetSale">—</p>
+            </article>
+
+          </div>
+
+          <!-- Responsive table -->
+          <div class="data-table-wrapper" id="dayWiseTableWrapper">
+            <table class="data-table" id="dayWiseTable">
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Sale</th>
+                  <th scope="col">Return</th>
+                  <th scope="col">Net Sale</th>
+                </tr>
+              </thead>
+              <tbody id="dayWiseTableBody">
+                <tr class="table-empty-row" id="dayWiseTableEmptyState">
+                  <td colspan="4">
+                    <div class="empty-state">
+                      <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+                      <p>No data available.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============ TAB PANEL 2 — CUSTOMER WISE ============ -->
+        <div
+          class="tab-panel"
+          id="customerWisePanel"
+          role="tabpanel"
+          aria-labelledby="customerWiseTabBtn"
+          tabindex="0"
+          hidden>
+
+          <!-- Search box -->
+          <div class="table-search-bar" id="customerSearchBar">
+            <label class="visually-hidden" for="customerSearch">Search customer name or customer code</label>
+            <span class="table-search-icon" aria-hidden="true">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="search"
+              class="table-search-input"
+              id="customerSearch"
+              placeholder="Search Customer Name or Customer Code"
+              autocomplete="off">
+          </div>
+
+          <!-- Responsive table -->
+          <div class="data-table-wrapper" id="customerTableWrapper">
+            <table class="data-table" id="customerTable">
+              <thead>
+                <tr>
+                  <th scope="col">Customer Code</th>
+                  <th scope="col">Customer Name</th>
+                  <th scope="col">Sale</th>
+                  <th scope="col">Return</th>
+                  <th scope="col">Expiry</th>
+                  <th scope="col">Net Sale</th>
+                </tr>
+              </thead>
+              <tbody id="customerTableBody">
+                <tr class="table-empty-row" id="customerTableEmptyState">
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+                      <p>No data available.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============ TAB PANEL 3 — ROUTE WISE ============ -->
+        <div
+          class="tab-panel"
+          id="routeWisePanel"
+          role="tabpanel"
+          aria-labelledby="routeWiseTabBtn"
+          tabindex="0"
+          hidden>
+
+          <!-- Search box -->
+          <div class="table-search-bar" id="routeSearchBar">
+            <label class="visually-hidden" for="routeSearch">Search route</label>
+            <span class="table-search-icon" aria-hidden="true">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="search"
+              class="table-search-input"
+              id="routeSearch"
+              placeholder="Search Route"
+              autocomplete="off">
+          </div>
+
+          <!-- Responsive table -->
+          <div class="data-table-wrapper" id="routeTableWrapper">
+            <table class="data-table" id="routeTable">
+              <thead>
+                <tr>
+                  <th scope="col">Route Name</th>
+                  <th scope="col">Customer Count</th>
+                  <th scope="col">Sale</th>
+                  <th scope="col">Return</th>
+                  <th scope="col">Expiry</th>
+                  <th scope="col">Net Sale</th>
+                </tr>
+              </thead>
+              <tbody id="routeTableBody">
+                <tr class="table-empty-row" id="routeTableEmptyState">
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+                      <p>No data available.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </section>
+
     </div>
     <!-- ================= END SALES DETAILS VIEW ================= -->
 
