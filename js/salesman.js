@@ -317,7 +317,33 @@ function getLoggedInUser(){
 }
 
 /* ---------------------------------------------------------------------------
-   4b. THEME TOGGLE (light / dark) — localStorage persisted, system-aware
+   4a. AUTHENTICATION / AUTHORIZATION GUARD (new — salesman-only access)
+   --------------------------------------------------------------------------- */
+
+// Validates that a logged-in salesman is viewing this page.
+// - No session -> redirect to login (../index.html)
+// - Session exists but role isn't "salesman" -> redirect to dashboard.html
+// Returns the session user object only when validation succeeds.
+function validateSalesmanAccess(){
+  const sessionUser = getLoggedInUser();
+
+  if (!sessionUser){
+    window.location.href = "../index.html";
+    return null;
+  }
+
+  const role = String(sessionUser.role || "").trim().toLowerCase();
+
+  if (role !== "salesman"){
+    window.location.href = "dashboard.html";
+    return null;
+  }
+
+  return sessionUser;
+}
+
+/* ---------------------------------------------------------------------------
+   4c. THEME TOGGLE (light / dark) — localStorage persisted, system-aware
    --------------------------------------------------------------------------- */
 
 const THEME_STORAGE_KEY = "apdpl-theme";
@@ -1102,11 +1128,9 @@ function initSalesDetails(summary, salesmanName){
 async function initSalesmanDashboard(){
   setLoadingState(true);
 
-  const sessionUser = getLoggedInUser();
+  const sessionUser = validateSalesmanAccess();
 
   if (!sessionUser){
-    setFatalMessage("Please sign in again to view your dashboard.");
-    setLoadingState(false);
     return;
   }
 

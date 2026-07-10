@@ -17,7 +17,7 @@ import { fetchFromAppsScript } from './api.js';
    1. SESSION GUARD
    -------------------------------------------------------------------------- */
 
-function getSession() {
+function validateAdminAccess() {
   try {
     const rawSession = sessionStorage.getItem('user');
 
@@ -26,9 +26,24 @@ function getSession() {
       return null;
     }
 
-    return JSON.parse(rawSession);
+    const session = JSON.parse(rawSession);
+    const role = String(session.role || "").trim().toLowerCase();
+
+    if (role === "admin") {
+      return session;
+    }
+
+    if (role === "salesman") {
+      window.location.replace('salesman.html');
+      return null;
+    }
+
+    sessionStorage.clear();
+    window.location.replace('../index.html');
+    return null;
   } catch (error) {
-    console.error('[dashboard.js] Failed to read session:', error);
+    console.error('[dashboard.js] Failed to validate admin access:', error);
+    sessionStorage.clear();
     window.location.replace('../index.html');
     return null;
   }
@@ -152,7 +167,7 @@ async function loadAppData() {
    -------------------------------------------------------------------------- */
 
 function initDashboard() {
-  const session = getSession();
+  const session = validateAdminAccess();
 
   if (!session) {
     return;
