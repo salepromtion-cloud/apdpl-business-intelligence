@@ -37,23 +37,23 @@
 
   /* Text */
   --sm-ink:        #101828;
-  --sm-ink-soft:   #5B6478;
-  --sm-ink-faint:  #8A94A6;
+  --sm-ink-soft:   #475467; 
+  --sm-ink-faint:  #667085; 
 
-  /* Shadow */
-  --sm-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --sm-shadow-md: 0 6px 20px rgba(16, 24, 40, 0.07);
-  --sm-shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.12);
+  /* Premium Shadows (Softer & more elegant) */
+  --sm-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.03);
+  --sm-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.05), 0 2px 4px rgba(16, 24, 40, 0.03);
+  --sm-shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.08), 0 4px 8px rgba(16, 24, 40, 0.03);
 
-  /* Glass / premium surface tokens (new — used by section 7 refinements) */
-  --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 88%, transparent);
-  --sm-glass-highlight: rgba(255, 255, 255, 0.55);
-  --sm-glass-border: color-mix(in srgb, var(--sm-border) 82%, transparent);
+  /* Glass / premium surface tokens */
+  --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 92%, transparent);
+  --sm-glass-highlight: rgba(255, 255, 255, 0.8);
+  --sm-glass-border: color-mix(in srgb, var(--sm-border) 80%, transparent);
 
-  /* Radius */
-  --sm-radius-sm: 10px;
-  --sm-radius-md: 16px;
-  --sm-radius-lg: 20px;
+  /* Radius (Slightly softer) */
+  --sm-radius-sm: 8px;
+  --sm-radius-md: 14px;
+  --sm-radius-lg: 18px;
   --sm-radius-pill: 999px;
 
   /* Type */
@@ -62,36 +62,32 @@
   --sm-font-mono: 'JetBrains Mono', monospace;
 
   /* Motion */
-  --sm-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --sm-duration: 0.24s;
-  --sm-theme-duration: 0.35s;
+  --sm-ease: cubic-bezier(0.2, 0.8, 0.2, 1); 
+  --sm-duration: 0.2s;
+  --sm-theme-duration: 0.3s;
 
-  /* Layout — header reduced ~20% (76px -> 60px) */
-  --sm-header-height: 60px;
-  --sm-gutter: clamp(16px, 3vw, 32px);
-  --sm-max-width: 1360px;
+  /* Layout */
+  --sm-header-height: 64px;
+  --sm-gutter: clamp(16px, 4vw, 32px); 
+  --sm-max-width: 1400px; 
 
-  /* Background pattern opacity ceiling (kept < 3%) */
-  --sm-pattern-opacity: 0.028;
+  /* Background pattern opacity ceiling */
+  --sm-pattern-opacity: 0.025;
 }
 
 /* ---------------------------------------------------------------------
    1b. DESIGN TOKENS — DARK
-   Applied automatically via system preference before the theme script
-   runs, and explicitly once the user (or saved localStorage choice)
-   sets [data-theme="dark"] on :root. The attribute selector always wins
-   over the media-query block due to higher specificity.
    --------------------------------------------------------------------- */
 
 @media (prefers-color-scheme: dark){
   :root{
-    --sm-blue-50:  rgba(37, 99, 235, 0.14);
-    --sm-blue-100: rgba(37, 99, 235, 0.20);
-    --sm-blue-500: #5B8DEF;
-    --sm-blue-600: #4F7EDC;
-    --sm-blue-700: #3D67BF;
+    --sm-blue-50:  rgba(37, 99, 235, 0.12);
+    --sm-blue-100: rgba(37, 99, 235, 0.18);
+    --sm-blue-500: #60A5FA;
+    --sm-blue-600: #3B82F6;
+    --sm-blue-700: #2563EB;
 
-    --sm-indigo-500: #8385F5;
+    --sm-indigo-500: #818CF8;
     --sm-teal-500:   #2DD4BF;
     --sm-orange-500: #FB923C;
     --sm-orange-600: #F97316;
@@ -101,23 +97,23 @@
     --sm-red-500:    #F87171;
     --sm-red-50:     rgba(220, 38, 38, 0.12);
 
-    --sm-bg:         #0F1420;
-    --sm-surface:     #161D2E;
-    --sm-surface-2:   #1B2438;
+    --sm-bg:         #0B0F19; 
+    --sm-surface:     #131A29;
+    --sm-surface-2:   #1C2538;
     --sm-border:      #2A3550;
     --sm-border-soft: #232D45;
 
-    --sm-ink:       #EDF1F9;
-    --sm-ink-soft:  #A6B0C3;
-    --sm-ink-faint: #6E7994;
+    --sm-ink:       #F8FAFC;
+    --sm-ink-soft:  #CBD5E1;
+    --sm-ink-faint: #94A3B8;
 
-    --sm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-    --sm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.32);
-    --sm-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.4);
+    --sm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --sm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --sm-shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.6);
 
-    --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 72%, transparent);
-    --sm-glass-highlight: rgba(255, 255, 255, 0.06);
-    --sm-glass-border: color-mix(in srgb, var(--sm-border) 70%, transparent);
+    --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 75%, transparent);
+    --sm-glass-highlight: rgba(255, 255, 255, 0.04);
+    --sm-glass-border: color-mix(in srgb, var(--sm-border) 60%, transparent);
   }
 }
 
@@ -145,26 +141,26 @@
   --sm-border-soft:  #EDF1F6;
 
   --sm-ink:        #101828;
-  --sm-ink-soft:   #5B6478;
-  --sm-ink-faint:  #8A94A6;
+  --sm-ink-soft:   #475467;
+  --sm-ink-faint:  #667085;
 
-  --sm-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --sm-shadow-md: 0 6px 20px rgba(16, 24, 40, 0.07);
-  --sm-shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.12);
+  --sm-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.03);
+  --sm-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.05), 0 2px 4px rgba(16, 24, 40, 0.03);
+  --sm-shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.08), 0 4px 8px rgba(16, 24, 40, 0.03);
 
-  --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 88%, transparent);
-  --sm-glass-highlight: rgba(255, 255, 255, 0.55);
-  --sm-glass-border: color-mix(in srgb, var(--sm-border) 82%, transparent);
+  --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 92%, transparent);
+  --sm-glass-highlight: rgba(255, 255, 255, 0.8);
+  --sm-glass-border: color-mix(in srgb, var(--sm-border) 80%, transparent);
 }
 
 :root[data-theme="dark"]{
-  --sm-blue-50:  rgba(37, 99, 235, 0.14);
-  --sm-blue-100: rgba(37, 99, 235, 0.20);
-  --sm-blue-500: #5B8DEF;
-  --sm-blue-600: #4F7EDC;
-  --sm-blue-700: #3D67BF;
+  --sm-blue-50:  rgba(37, 99, 235, 0.12);
+  --sm-blue-100: rgba(37, 99, 235, 0.18);
+  --sm-blue-500: #60A5FA;
+  --sm-blue-600: #3B82F6;
+  --sm-blue-700: #2563EB;
 
-  --sm-indigo-500: #8385F5;
+  --sm-indigo-500: #818CF8;
   --sm-teal-500:   #2DD4BF;
   --sm-orange-500: #FB923C;
   --sm-orange-600: #F97316;
@@ -174,23 +170,23 @@
   --sm-red-500:    #F87171;
   --sm-red-50:     rgba(220, 38, 38, 0.12);
 
-  --sm-bg:         #0F1420;
-  --sm-surface:     #161D2E;
-  --sm-surface-2:   #1B2438;
+  --sm-bg:         #0B0F19;
+  --sm-surface:     #131A29;
+  --sm-surface-2:   #1C2538;
   --sm-border:      #2A3550;
   --sm-border-soft: #232D45;
 
-  --sm-ink:       #EDF1F9;
-  --sm-ink-soft:  #A6B0C3;
-  --sm-ink-faint: #6E7994;
+  --sm-ink:       #F8FAFC;
+  --sm-ink-soft:  #CBD5E1;
+  --sm-ink-faint: #94A3B8;
 
-  --sm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --sm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.32);
-  --sm-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.4);
+  --sm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --sm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --sm-shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.6);
 
-  --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 72%, transparent);
-  --sm-glass-highlight: rgba(255, 255, 255, 0.06);
-  --sm-glass-border: color-mix(in srgb, var(--sm-border) 70%, transparent);
+  --sm-glass-bg: color-mix(in srgb, var(--sm-surface) 75%, transparent);
+  --sm-glass-highlight: rgba(255, 255, 255, 0.04);
+  --sm-glass-border: color-mix(in srgb, var(--sm-border) 60%, transparent);
 }
 
 /* ---------------------------------------------------------------------
@@ -209,19 +205,13 @@
               color var(--sm-theme-duration) var(--sm-ease);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .salesman-page ::selection{
   background: var(--sm-blue-100);
   color: var(--sm-ink);
 }
-
-/* ---------------------------------------------------------------------
-   2b. GLOBAL OVERFLOW GUARD
-   Belt-and-braces rule so html/body/.salesman-page can never scroll
-   horizontally, regardless of what content is added inside sections
-   (including the Sales Details tables). Vertical scrolling is untouched.
-   --------------------------------------------------------------------- */
 
 html,
 body{
@@ -241,15 +231,7 @@ body{
   box-sizing: border-box;
 }
 
-/* ---------------------------------------------------------------------
-   2c. SUBTLE CORPORATE / PHARMA BACKGROUND (new)
-   Pure CSS: a faint hexagonal chemistry-grid layer + soft molecule dot
-   nodes, rendered as a fixed low-opacity pseudo-layer beneath all page
-   content. No external images, no JS. Opacity is capped by
-   --sm-pattern-opacity (2.8%) so it never competes with data. Works in
-   both themes because it inherits currentColor via var(--sm-ink).
-   --------------------------------------------------------------------- */
-
+/* Subtle corporate pattern background */
 .salesman-page::before{
   content: "";
   position: fixed;
@@ -258,11 +240,9 @@ body{
   pointer-events: none;
   opacity: var(--sm-pattern-opacity);
   background-image:
-    /* hexagonal chemistry grid */
     repeating-linear-gradient(120deg, var(--sm-ink) 0 1px, transparent 1px 64px),
     repeating-linear-gradient(60deg, var(--sm-ink) 0 1px, transparent 1px 64px),
     repeating-linear-gradient(0deg, var(--sm-ink) 0 1px, transparent 1px 64px),
-    /* faint molecule / node dots */
     radial-gradient(circle at 12% 18%, var(--sm-ink) 0 2px, transparent 3px),
     radial-gradient(circle at 78% 32%, var(--sm-ink) 0 2px, transparent 3px),
     radial-gradient(circle at 42% 68%, var(--sm-ink) 0 2px, transparent 3px),
@@ -280,7 +260,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 }
 
 /* ---------------------------------------------------------------------
-   3. HEADER — compacted ~20%, tighter alignment, no wasted space
+   3. HEADER — Clean, focused on Welcome Text, Premium Profile
    --------------------------------------------------------------------- */
 
 .salesman-header{
@@ -289,12 +269,12 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   z-index: 50;
   display: flex;
   align-items: center;
-  gap: clamp(10px, 1.6vw, 20px);
+  gap: clamp(12px, 2vw, 24px);
   min-height: var(--sm-header-height);
   padding: 8px var(--sm-gutter);
-  background: color-mix(in srgb, var(--sm-surface) 78%, transparent);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  background: color-mix(in srgb, var(--sm-surface) 85%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-block-end: 1px solid var(--sm-border-soft);
   box-shadow: var(--sm-shadow-sm);
   transition: background-color var(--sm-theme-duration) var(--sm-ease),
@@ -309,7 +289,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 }
 
 .header-logo{
-  block-size: 48px;
+  block-size: clamp(28px, 3.5vw, 36px); 
   inline-size: auto;
   max-inline-size: 100%;
   object-fit: contain;
@@ -321,7 +301,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
   min-inline-size: 0;
   flex: 1;
   min-block-size: 100%;
@@ -333,11 +313,11 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   gap: 8px;
   font-family: var(--sm-font-display);
   font-weight: 600;
-  font-size: clamp(15px, 1.7vw, 19.5px);
+  font-size: clamp(16px, 2vw, 22px); 
   color: var(--sm-ink);
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-  white-space: nowrap;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
   max-inline-size: 100%;
@@ -350,17 +330,14 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   min-inline-size: 0;
 }
 
-/* Support a rank badge placed beside the username inside .welcome-line
-   (e.g. a future <span class="rank-badge">) without breaking layout —
-   shrinks to content, never wraps the line, sits on the text baseline. */
 .welcome-line .rank-badge{
   position: static;
   flex-shrink: 0;
   inset: auto;
-  min-inline-size: 20px;
-  block-size: 18px;
-  padding: 0 7px;
-  font-size: 9px;
+  min-inline-size: 24px;
+  block-size: 20px;
+  padding: 0 8px;
+  font-size: 10px;
   border: none;
   box-shadow: none;
   transform: translateY(-1px);
@@ -368,10 +345,10 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 
 .header-subtitle{
   margin: 0;
-  font-size: 10px;
+  font-size: clamp(10px, 1.2vw, 11px);
   font-weight: 500;
   color: var(--sm-ink-faint);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
@@ -382,30 +359,29 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 .welcome-meta{
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-block-start: 1px;
+  gap: 8px;
+  margin-block-start: 2px;
 }
 
 .meta-chip{
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: var(--sm-radius-pill);
   background: var(--sm-surface-2);
   border: 1px solid var(--sm-border);
   font-family: var(--sm-font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.02em;
+  font-size: clamp(10px, 1vw, 11px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--sm-ink-soft);
   max-inline-size: 100%;
-  transition: background-color var(--sm-theme-duration) var(--sm-ease),
-              border-color var(--sm-theme-duration) var(--sm-ease),
-              color var(--sm-theme-duration) var(--sm-ease);
+  transition: all var(--sm-theme-duration) var(--sm-ease);
 }
 
 .meta-chip i{
-  font-size: 11px;
+  font-size: 12px;
   color: var(--sm-blue-500);
   flex-shrink: 0;
 }
@@ -413,7 +389,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 .header-actions{
   display: flex;
   align-items: center;
-  gap: clamp(8px, 1.3vw, 14px);
+  gap: clamp(8px, 1.5vw, 16px);
   flex-shrink: 0;
   margin-inline-start: auto;
 }
@@ -424,27 +400,24 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 40px;
-  block-size: 40px;
-  border-radius: var(--sm-radius-sm);
+  inline-size: 42px;
+  block-size: 42px;
+  border-radius: var(--sm-radius-md);
   border: 1px solid var(--sm-border);
   background: var(--sm-surface);
   color: var(--sm-ink-soft);
-  font-size: 17px;
+  font-size: 18px;
   cursor: pointer;
-  transition: border-color var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease),
-              color var(--sm-duration) var(--sm-ease),
-              transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease);
+  transition: all var(--sm-duration) var(--sm-ease);
 }
 
 .theme-toggle-btn:hover,
 .notification-btn:hover{
   border-color: var(--sm-blue-500);
-  color: var(--sm-blue-500);
+  color: var(--sm-blue-600);
   transform: translateY(-2px);
   box-shadow: var(--sm-shadow-sm);
+  background: var(--sm-surface-2);
 }
 
 .theme-toggle-btn:active,
@@ -468,13 +441,14 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 
 .notification-dot{
   position: absolute;
-  inset-block-start: 5px;
-  inset-inline-end: 6px;
-  inline-size: 9px;
-  block-size: 9px;
+  inset-block-start: 6px;
+  inset-inline-end: 8px;
+  inline-size: 8px;
+  block-size: 8px;
   border-radius: 50%;
   background: var(--sm-rose-500);
   border: 2px solid var(--sm-surface);
+  box-shadow: 0 0 0 1px var(--sm-rose-500);
 }
 
 .notification-dot[hidden]{
@@ -488,8 +462,8 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 
 .profile-photo-wrap{
   position: relative;
-  inline-size: 42px;
-  block-size: 42px;
+  inline-size: 44px;
+  block-size: 44px;
   flex-shrink: 0;
 }
 
@@ -500,39 +474,40 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--sm-surface);
-  box-shadow: 0 0 0 1.5px var(--sm-border), var(--sm-shadow-sm);
+  box-shadow: 0 0 0 1px var(--sm-border), var(--sm-shadow-sm);
   background: var(--sm-surface-2);
-  transition: box-shadow var(--sm-duration) var(--sm-ease);
+  transition: all var(--sm-duration) var(--sm-ease);
 }
 
 .profile-photo-wrap:hover .profile-photo{
-  box-shadow: 0 0 0 1.5px var(--sm-blue-500), var(--sm-shadow-md);
+  box-shadow: 0 0 0 2px var(--sm-blue-500), var(--sm-shadow-md);
+  transform: scale(1.02);
 }
 
+/* Premium Corporate Gold Badge */
 .rank-badge{
   position: absolute;
-  inset-block-end: -4px;
+  inset-block-end: -2px;
   inset-inline-end: -4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-inline-size: 20px;
-  block-size: 20px;
-  padding: 0 5px;
+  min-inline-size: 22px;
+  block-size: 22px;
+  padding: 0 6px;
   border-radius: var(--sm-radius-pill);
-  background: linear-gradient(135deg, var(--sm-orange-500), var(--sm-orange-600));
+  background: linear-gradient(135deg, #D4AF37 0%, #AA8929 100%);
   color: #FFFFFF;
   font-family: var(--sm-font-mono);
-  font-size: 9.5px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   border: 2px solid var(--sm-surface);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 /* ---------------------------------------------------------------------
    3b. PORTAL NAVIGATION
-   Segmented control below the header for switching between Dashboard
-   and Sales Details. Reuses existing --sm-* tokens only — no new colors
-   introduced, so light/dark mode are supported automatically.
    --------------------------------------------------------------------- */
 
 .portal-tabs{
@@ -541,46 +516,42 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   z-index: 40;
   display: flex;
   align-items: stretch;
-  gap: 6px;
+  gap: 8px;
   inline-size: 100%;
   max-inline-size: var(--sm-max-width);
   margin-inline: auto;
-  padding: 6px;
+  padding: 8px;
   background: var(--sm-surface-2);
   border: 1px solid var(--sm-border);
   border-block-end: 1px solid var(--sm-border);
   box-shadow: var(--sm-shadow-sm);
-  transition: background-color var(--sm-theme-duration) var(--sm-ease),
-              border-color var(--sm-theme-duration) var(--sm-ease);
+  transition: all var(--sm-theme-duration) var(--sm-ease);
 }
 
 .portal-tab{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   flex: 1 1 0;
   min-inline-size: 0;
-  min-block-size: 44px;
-  padding: 10px 14px;
+  min-block-size: 46px;
+  padding: 10px 16px;
   border: none;
-  border-radius: var(--sm-radius-sm);
+  border-radius: var(--sm-radius-md);
   background: transparent;
   color: var(--sm-ink-soft);
   font-family: var(--sm-font-body);
-  font-size: 13.5px;
+  font-size: clamp(13px, 1.2vw, 14.5px);
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--sm-duration) var(--sm-ease),
-              color var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              transform var(--sm-duration) var(--sm-ease);
+  transition: all var(--sm-duration) var(--sm-ease);
 }
 
 .portal-tab i{
-  font-size: 15px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -603,6 +574,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   background: var(--sm-surface);
   color: var(--sm-blue-600);
   box-shadow: var(--sm-shadow-sm);
+  border: 1px solid var(--sm-border-soft);
 }
 
 .portal-tab.is-active:hover{
@@ -622,34 +594,34 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   inline-size: 100%;
   max-inline-size: var(--sm-max-width);
   margin-inline: auto;
-  padding: clamp(18px, 2.6vw, 30px) var(--sm-gutter) 0;
-  animation: sm-fade-in 0.4s var(--sm-ease) both;
+  padding: clamp(20px, 3vw, 36px) var(--sm-gutter) 0;
+  animation: sm-fade-in 0.5s var(--sm-ease) both;
 }
 
 .dashboard-section:last-of-type{
-  padding-block-end: clamp(20px, 3vw, 32px);
+  padding-block-end: clamp(24px, 4vw, 40px);
 }
 
 @keyframes sm-fade-in{
-  from{ opacity: 0; transform: translateY(6px); }
+  from{ opacity: 0; transform: translateY(8px); }
   to{ opacity: 1; transform: translateY(0); }
 }
 
 .section-heading{
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-block-end: 14px;
+  gap: 12px;
+  margin-block-end: 18px;
 }
 
 .section-heading h2{
   font-family: var(--sm-font-display);
   font-weight: 600;
-  font-size: clamp(15px, 1.1vw + 0.7rem, 19px);
+  font-size: clamp(16px, 1.2vw + 0.8rem, 21px);
   color: var(--sm-ink);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   position: relative;
-  padding-inline-start: 14px;
+  padding-inline-start: 16px;
 }
 
 .section-heading h2::before{
@@ -659,19 +631,19 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   inset-block-start: 50%;
   transform: translateY(-50%);
   inline-size: 4px;
-  block-size: 18px;
+  block-size: 20px;
   border-radius: var(--sm-radius-pill);
   background: linear-gradient(180deg, var(--sm-blue-500), var(--sm-teal-500));
 }
 
 /* ---------------------------------------------------------------------
-   5. KPI GRID (Section 1) — denser, glass surface, fluid type
+   5. KPI GRID (Section 1) — Premium Glass, Fluid Type, Smart Wrapping
    --------------------------------------------------------------------- */
 
 .kpi-grid{
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: clamp(10px, 1.4vw, 16px);
+  gap: clamp(12px, 1.5vw, 20px);
   align-items: stretch;
 }
 
@@ -680,22 +652,18 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
-  padding: clamp(12px, 1.6vw, 18px);
+  gap: 8px;
+  padding: clamp(16px, 2vw, 22px);
   background: var(--sm-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--sm-glass-border);
   border-radius: var(--sm-radius-lg);
   box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-sm);
   overflow: hidden;
   min-inline-size: 0;
-  min-block-size: 108px;
   height: 100%;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              border-color var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
+  transition: all var(--sm-duration) var(--sm-ease);
 }
 
 .kpi-card::after{
@@ -704,7 +672,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   inset-block-start: 0;
   inset-inline-start: 0;
   inline-size: 100%;
-  block-size: 3px;
+  block-size: 4px;
   background: linear-gradient(90deg, var(--sm-blue-500), var(--sm-teal-500));
   opacity: 0;
   transition: opacity var(--sm-duration) var(--sm-ease);
@@ -712,8 +680,8 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 
 .kpi-card:hover{
   transform: translateY(-4px);
-  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-lg);
-  border-color: color-mix(in srgb, var(--sm-blue-500) 30%, var(--sm-border));
+  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-md);
+  border-color: color-mix(in srgb, var(--sm-blue-500) 25%, var(--sm-border));
 }
 
 .kpi-card:hover::after{
@@ -724,10 +692,10 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 36px;
-  block-size: 36px;
-  border-radius: var(--sm-radius-sm);
-  font-size: 17px;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--sm-radius-md);
+  font-size: 18px;
   flex-shrink: 0;
   transition: background-color var(--sm-theme-duration) var(--sm-ease);
 }
@@ -738,53 +706,52 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 }
 
 .kpi-icon-indigo{
-  background: color-mix(in srgb, var(--sm-indigo-500) 14%, transparent);
+  background: color-mix(in srgb, var(--sm-indigo-500) 12%, transparent);
   color: var(--sm-indigo-500);
 }
 
 .kpi-icon-teal{
-  background: color-mix(in srgb, var(--sm-teal-500) 14%, transparent);
+  background: color-mix(in srgb, var(--sm-teal-500) 12%, transparent);
   color: var(--sm-teal-500);
 }
 
 .kpi-icon-amber{
-  background: color-mix(in srgb, var(--sm-orange-500) 14%, transparent);
+  background: color-mix(in srgb, var(--sm-orange-500) 12%, transparent);
   color: var(--sm-orange-600);
 }
 
 .kpi-icon-rose{
-  background: color-mix(in srgb, var(--sm-rose-500) 14%, transparent);
+  background: color-mix(in srgb, var(--sm-rose-500) 12%, transparent);
   color: var(--sm-rose-500);
 }
 
 .kpi-label{
-  font-size: clamp(11px, 0.4vw + 0.6rem, 12.5px);
+  font-size: clamp(11.5px, 0.6vw + 0.5rem, 13px);
   font-weight: 500;
   color: var(--sm-ink-soft);
+  letter-spacing: 0.01em;
 }
 
 .kpi-value{
   font-family: var(--sm-font-mono);
-  font-size: clamp(17px, 1vw + 0.9rem, 25px);
-  font-weight: 500;
+  font-size: clamp(16px, 1.5vw + 0.8rem, 26px);
+  font-weight: 600;
   color: var(--sm-ink);
-  letter-spacing: -0.01em;
-  line-height: 1.1;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;          
+  overflow-wrap: anywhere;      
+  word-break: break-word;       
   max-inline-size: 100%;
 }
 
 .kpi-subtitle{
-  font-size: clamp(10.5px, 0.25vw + 0.6rem, 11.5px);
+  font-size: clamp(11px, 0.4vw + 0.5rem, 12px);
   color: var(--sm-ink-faint);
   line-height: 1.4;
   overflow-wrap: break-word;
 }
-
-/* Today's Required Sale — completed/achieved single-line centered state */
 
 #todaysRequiredSaleValue:only-child,
 #kpiTodaysRequiredSale .kpi-value{
@@ -793,9 +760,8 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 
 #kpiTodaysRequiredSale .kpi-value:not([data-numeric]){
   font-family: var(--sm-font-body);
-  font-size: clamp(13.5px, 0.7vw + 0.8rem, 17px);
+  font-size: clamp(14px, 0.8vw + 0.8rem, 18px);
   font-weight: 600;
-  white-space: normal;
 }
 
 /* ---------------------------------------------------------------------
@@ -805,33 +771,31 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 .company-grid{
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(12px, 1.4vw, 16px);
+  gap: clamp(12px, 1.5vw, 20px);
 }
 
 .company-card{
-  padding: clamp(16px, 1.8vw, 22px);
+  padding: clamp(18px, 2vw, 24px);
   background: var(--sm-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--sm-glass-border);
   border-radius: var(--sm-radius-lg);
   box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-sm);
   min-inline-size: 0;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
+  transition: all var(--sm-duration) var(--sm-ease);
 }
 
 .company-card:hover{
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-md);
 }
 
 .company-card-header{
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-block-end: 14px;
+  gap: 12px;
+  margin-block-end: 16px;
   min-inline-size: 0;
 }
 
@@ -839,17 +803,17 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 36px;
-  block-size: 36px;
-  border-radius: var(--sm-radius-sm);
-  font-size: 17px;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--sm-radius-md);
+  font-size: 18px;
   background: var(--sm-surface-2);
   flex-shrink: 0;
 }
 
 .company-name{
   font-family: var(--sm-font-display);
-  font-size: clamp(14.5px, 0.4vw + 0.85rem, 15.5px);
+  font-size: clamp(15px, 0.5vw + 0.8rem, 17px);
   font-weight: 600;
   color: var(--sm-ink);
   overflow: hidden;
@@ -861,19 +825,19 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 .company-metrics{
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px 14px;
-  margin: 0 0 14px;
+  gap: 12px 16px;
+  margin: 0 0 16px;
 }
 
 .company-metric{
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-inline-size: 0;
 }
 
 .company-metric dt{
-  font-size: 10.5px;
+  font-size: clamp(11px, 0.4vw + 0.5rem, 12px);
   color: var(--sm-ink-faint);
   font-weight: 500;
 }
@@ -881,13 +845,12 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 .company-metric dd{
   margin: 0;
   font-family: var(--sm-font-mono);
-  font-size: clamp(13px, 0.3vw + 0.75rem, 14.5px);
-  font-weight: 500;
+  font-size: clamp(14px, 0.5vw + 0.75rem, 16px);
+  font-weight: 600;
   color: var(--sm-ink);
   font-variant-numeric: tabular-nums;
   overflow-wrap: break-word;
   word-break: break-word;
-  transition: color var(--sm-duration) var(--sm-ease);
 }
 
 .progress-track{
@@ -906,34 +869,17 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   inset-inline-start: 0;
   inline-size: 0%;
   border-radius: var(--sm-radius-pill);
-  transition: inline-size 0.6s var(--sm-ease), background-color 0.3s var(--sm-ease);
+  transition: inline-size 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s var(--sm-ease);
 }
 
-/* Company theme accents */
+#companyCardPharma .company-icon{ background: var(--sm-blue-50); color: var(--sm-blue-600); }
+#companyCardPharma .progress-fill{ background: linear-gradient(90deg, var(--sm-blue-500), var(--sm-blue-700)); }
 
-#companyCardPharma .company-icon{
-  background: var(--sm-blue-50);
-}
+#companyCardPl .company-icon{ background: color-mix(in srgb, var(--sm-orange-500) 12%, transparent); color: var(--sm-orange-600); }
+#companyCardPl .progress-fill{ background: linear-gradient(90deg, var(--sm-orange-500), var(--sm-orange-600)); }
 
-#companyCardPharma .progress-fill{
-  background: linear-gradient(90deg, var(--sm-blue-500), var(--sm-blue-700));
-}
-
-#companyCardPl .company-icon{
-  background: color-mix(in srgb, var(--sm-orange-500) 14%, transparent);
-}
-
-#companyCardPl .progress-fill{
-  background: linear-gradient(90deg, var(--sm-orange-500), var(--sm-orange-600));
-}
-
-#companyCardZenvito .company-icon{
-  background: color-mix(in srgb, var(--sm-green-500) 14%, transparent);
-}
-
-#companyCardZenvito .progress-fill{
-  background: linear-gradient(90deg, var(--sm-green-500), var(--sm-green-600));
-}
+#companyCardZenvito .company-icon{ background: color-mix(in srgb, var(--sm-green-500) 12%, transparent); color: var(--sm-green-600); }
+#companyCardZenvito .progress-fill{ background: linear-gradient(90deg, var(--sm-green-500), var(--sm-green-600)); }
 
 /* ---------------------------------------------------------------------
    7. RUN RATE (Section 3) & PROJECTION (Section 4)
@@ -943,7 +889,7 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
 .projection-grid{
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(10px, 1.4vw, 16px);
+  gap: clamp(12px, 1.5vw, 20px);
 }
 
 .run-rate-card,
@@ -951,882 +897,34 @@ main.salesman-page > *:not(.salesman-header):not(.portal-tabs){
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: clamp(16px, 1.8vw, 22px);
-  background: linear-gradient(165deg, var(--sm-glass-bg) 0%, color-mix(in srgb, var(--sm-surface-2) 92%, transparent) 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  gap: 10px;
+  padding: clamp(18px, 2vw, 24px);
+  background: linear-gradient(165deg, var(--sm-glass-bg) 0%, color-mix(in srgb, var(--sm-surface-2) 90%, transparent) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--sm-glass-border);
   border-radius: var(--sm-radius-lg);
   box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-sm);
   overflow: hidden;
   min-inline-size: 0;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
+  transition: all var(--sm-duration) var(--sm-ease);
 }
 
 .run-rate-card:hover,
 .projection-card:hover{
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-md);
 }
 
 .run-rate-card .kpi-icon,
 .projection-card .kpi-icon{
-  margin-block-end: 2px;
+  margin-block-end: 4px;
 }
 
 .run-rate-card .kpi-value,
 .projection-card .kpi-value{
-  font-size: clamp(19px, 1vw + 1rem, 27px);
+  font-size: clamp(20px, 1.5vw + 1rem, 28px);
   font-variant-numeric: tabular-nums;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   word-break: break-word;
   white-space: normal;
-}
-
-.run-rate-card .kpi-subtitle,
-.projection-card .kpi-subtitle{
-  font-weight: 500;
-  overflow-wrap: break-word;
-}
-
-#currentRunRateCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-teal-500), var(--sm-blue-500));
-}
-
-#requiredRunRateCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-orange-500), var(--sm-orange-600));
-}
-
-#projectedMonthEndCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-blue-500), var(--sm-indigo-500));
-}
-
-#gapToTargetCard::before{
-  content: "";
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  inline-size: 4px;
-  block-size: 100%;
-  background: linear-gradient(180deg, var(--sm-rose-500), var(--sm-red-500));
-}
-
-#requiredRunRateCard .kpi-value,
-#gapToTargetCard .kpi-value{
-  color: var(--sm-orange-600);
-}
-
-/* ---------------------------------------------------------------------
-   8. RETURNS (Section 5) — soft red / professional danger styling
-   --------------------------------------------------------------------- */
-
-.returns-grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(10px, 1.4vw, 16px);
-}
-
-.returns-card{
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: clamp(14px, 1.6vw, 18px);
-  background: var(--sm-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--sm-glass-border);
-  border-inline-start: 3px solid var(--sm-red-500);
-  border-radius: var(--sm-radius-md);
-  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-sm);
-  min-inline-size: 0;
-  transition: transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.returns-card:hover{
-  transform: translateY(-3px);
-  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-md);
-}
-
-.returns-card .kpi-value{
-  color: var(--sm-red-500);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.returns-card .kpi-icon{
-  background: var(--sm-red-50);
-  color: var(--sm-red-500);
-}
-
-/* ---------------------------------------------------------------------
-   9. LIST CARDS — Focus Products (6) & Announcements (7)
-   --------------------------------------------------------------------- */
-
-.list-card{
-  background: var(--sm-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--sm-glass-border);
-  border-radius: var(--sm-radius-lg);
-  box-shadow: inset 0 1px 0 var(--sm-glass-highlight), var(--sm-shadow-sm);
-  padding: clamp(12px, 1.6vw, 16px);
-  transition: background-color var(--sm-theme-duration) var(--sm-ease);
-}
-
-.scrollable-list{
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-block-size: 280px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--sm-border) transparent;
-}
-
-.scrollable-list::-webkit-scrollbar{
-  inline-size: 7px;
-}
-
-.scrollable-list::-webkit-scrollbar-track{
-  background: transparent;
-}
-
-.scrollable-list::-webkit-scrollbar-thumb{
-  background: var(--sm-border);
-  border-radius: var(--sm-radius-pill);
-}
-
-.scrollable-list::-webkit-scrollbar-thumb:hover{
-  background: var(--sm-ink-faint);
-}
-
-.scrollable-list li:not(.empty-state){
-  padding: 12px 14px;
-  border-radius: var(--sm-radius-sm);
-  background: var(--sm-surface-2);
-  border: 1px solid var(--sm-border-soft);
-  font-size: 13.5px;
-  color: var(--sm-ink);
-  overflow-wrap: break-word;
-  transition: background-color var(--sm-duration) var(--sm-ease),
-              transform var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease);
-}
-
-.scrollable-list li:not(.empty-state):hover{
-  background: var(--sm-blue-50);
-  transform: translateX(2px);
-  box-shadow: var(--sm-shadow-sm);
-}
-
-.empty-state{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 36px 16px;
-  text-align: center;
-  color: var(--sm-ink-faint);
-}
-
-.empty-state i{
-  font-size: 26px;
-  color: var(--sm-ink-faint);
-  opacity: 0.7;
-}
-
-.empty-state p{
-  margin: 0;
-  font-size: 13px;
-  max-inline-size: 220px;
-}
-
-/* ---------------------------------------------------------------------
-   10. FOOTER
-   --------------------------------------------------------------------- */
-
-.salesman-footer{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 18px var(--sm-gutter) 26px;
-  max-inline-size: var(--sm-max-width);
-  margin-inline: auto;
-  inline-size: 100%;
-  font-family: var(--sm-font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.03em;
-  color: var(--sm-ink-faint);
-  border-block-start: 1px solid var(--sm-border-soft);
-}
-
-.salesman-footer span{
-  overflow-wrap: break-word;
-  min-inline-size: 0;
-}
-
-/* ---------------------------------------------------------------------
-   11. SALES DETAILS — TABLES (new)
-   Applies to the markup merged from sales-analysis.html into
-   #salesDetailsView. Class names are reused exactly as authored there
-   (.tabs-nav, .tab-btn, .tab-panel, .data-table-wrapper, .data-table,
-   .table-search-bar, .table-search-input) — nothing renamed, nothing
-   added to HTML. Enterprise-grade density, sticky header, tabular
-   numerics, contained horizontal scroll only.
-   --------------------------------------------------------------------- */
-
-.tabs-nav{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 6px;
-  margin-block-end: 16px;
-  background: var(--sm-surface-2);
-  border: 1px solid var(--sm-border);
-  border-radius: var(--sm-radius-md);
-  box-shadow: var(--sm-shadow-sm);
-}
-
-.tab-btn{
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  flex: 1 1 auto;
-  justify-content: center;
-  min-block-size: 40px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: var(--sm-radius-sm);
-  background: transparent;
-  color: var(--sm-ink-soft);
-  font-family: var(--sm-font-body);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--sm-duration) var(--sm-ease),
-              color var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease),
-              transform var(--sm-duration) var(--sm-ease);
-}
-
-.tab-btn:hover{
-  background: var(--sm-surface);
-  color: var(--sm-ink);
-}
-
-.tab-btn.is-active{
-  background: var(--sm-surface);
-  color: var(--sm-blue-600);
-  box-shadow: var(--sm-shadow-sm);
-}
-
-.tab-btn:focus-visible{
-  outline: 2px solid var(--sm-blue-500);
-  outline-offset: 2px;
-}
-
-.tab-icon{
-  font-size: 14px;
-}
-
-.tab-panel{
-  outline: none;
-}
-
-.analysis-summary-grid{
-  margin-block-end: 16px;
-}
-
-.table-search-bar{
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-block-end: 14px;
-  background: var(--sm-surface);
-  border: 1px solid var(--sm-border);
-  border-radius: var(--sm-radius-md);
-  box-shadow: var(--sm-shadow-sm);
-  transition: border-color var(--sm-duration) var(--sm-ease),
-              box-shadow var(--sm-duration) var(--sm-ease);
-}
-
-.table-search-bar:focus-within{
-  border-color: var(--sm-blue-500);
-  box-shadow: 0 0 0 3px var(--sm-blue-50);
-}
-
-.table-search-icon{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 42px;
-  block-size: 44px;
-  flex-shrink: 0;
-  color: var(--sm-ink-faint);
-  font-size: 14.5px;
-}
-
-.table-search-input{
-  flex: 1;
-  min-inline-size: 0;
-  block-size: 44px;
-  padding-inline-end: 14px;
-  border: none;
-  background: transparent;
-  color: var(--sm-ink);
-  font-family: var(--sm-font-body);
-  font-size: 13.5px;
-}
-
-.table-search-input::placeholder{
-  color: var(--sm-ink-faint);
-}
-
-.table-search-input:focus{
-  outline: none;
-}
-
-.data-table-wrapper{
-  position: relative;
-  inline-size: 100%;
-  max-inline-size: 100%;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-block-size: 62vh;
-  border: 1px solid var(--sm-border);
-  border-radius: var(--sm-radius-lg);
-  background: var(--sm-surface);
-  box-shadow: var(--sm-shadow-sm);
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--sm-border) transparent;
-}
-
-.data-table-wrapper::-webkit-scrollbar{
-  inline-size: 8px;
-  block-size: 8px;
-}
-
-.data-table-wrapper::-webkit-scrollbar-track{
-  background: transparent;
-}
-
-.data-table-wrapper::-webkit-scrollbar-thumb{
-  background: var(--sm-border);
-  border-radius: var(--sm-radius-pill);
-}
-
-.data-table{
-  inline-size: 100%;
-  min-inline-size: 480px;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: clamp(12.5px, 0.2vw + 0.72rem, 13.5px);
-  color: var(--sm-ink);
-}
-
-.data-table thead th{
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding: 12px 16px;
-  background: color-mix(in srgb, var(--sm-surface-2) 96%, var(--sm-surface));
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: var(--sm-ink-soft);
-  font-family: var(--sm-font-body);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  text-align: left;
-  white-space: nowrap;
-  border-block-end: 1px solid var(--sm-border);
-}
-
-.data-table tbody td{
-  padding: 11px 16px;
-  border-block-end: 1px solid var(--sm-border-soft);
-  color: var(--sm-ink);
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
-.data-table tbody tr:last-child td{
-  border-block-end: none;
-}
-
-.data-table tbody tr{
-  transition: background-color 0.15s var(--sm-ease);
-}
-
-.data-table tbody tr:hover td{
-  background: var(--sm-blue-50);
-}
-
-.data-table tbody tr:nth-child(even) td{
-  background: color-mix(in srgb, var(--sm-surface-2) 55%, transparent);
-}
-
-.data-table tbody tr:nth-child(even):hover td{
-  background: var(--sm-blue-50);
-}
-
-/* Numeric column alignment — scoped per table to match each table's
-   actual column order (no HTML changes required). */
-
-#dayWiseTable th:not(:first-child),
-#dayWiseTable td:not(:first-child){
-  text-align: right;
-  font-family: var(--sm-font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-#customerTable th:nth-child(n+3),
-#customerTable td:nth-child(n+3),
-#routeTable th:nth-child(n+2),
-#routeTable td:nth-child(n+2){
-  text-align: right;
-  font-family: var(--sm-font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.data-table .table-empty-row td{
-  padding: 0;
-  border: none;
-}
-
-.data-table .table-empty-row:hover td{
-  background: transparent;
-}
-
-/* ---------------------------------------------------------------------
-   12. RESPONSIVE — Tablet & Desktop
-   --------------------------------------------------------------------- */
-
-@media (min-width: 420px){
-  .header-actions{
-    gap: clamp(8px, 1.2vw, 14px);
-  }
-}
-
-@media (min-width: 560px){
-  .kpi-grid{
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .returns-grid{
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .run-rate-grid,
-  .projection-grid{
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 640px){
-  .portal-tab{
-    flex: 0 1 auto;
-    padding: 10px 24px;
-  }
-
-  .tab-btn{
-    flex: 0 1 auto;
-    padding: 9px 20px;
-  }
-}
-
-@media (min-width: 860px){
-  .company-grid{
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1080px){
-  .kpi-grid{
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  .header-welcome{
-    flex-direction: row;
-    align-items: baseline;
-    gap: 14px;
-  }
-
-  .welcome-line{
-    white-space: normal;
-  }
-
-  .header-subtitle{
-    order: 2;
-  }
-
-  .welcome-meta{
-    order: 3;
-    margin-block-start: 0;
-  }
-
-  .data-table-wrapper{
-    max-block-size: 68vh;
-  }
-}
-
-@media (max-width: 419px){
-  .meta-chip span:last-child{
-    max-inline-size: 92px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: bottom;
-  }
-}
-
-/* ---------------------------------------------------------------------
-   12b. MOBILE HARDENING (<=480px, and extra-narrow 320–360px devices)
-   Responsive-only fixes — no new visual style, no color/token changes,
-   no redesign. Desktop (>=1080px) rules above are untouched.
-   --------------------------------------------------------------------- */
-
-@media (max-width: 480px){
-
-  /* ---- Header: keep logo, greeting, chips, and action buttons inside
-     the viewport; stack gracefully instead of clipping/overflowing. --- */
-
-  .salesman-header{
-    flex-wrap: wrap;
-    row-gap: 8px;
-    padding-block: 8px;
-  }
-
-  .header-logo{
-    block-size: 36px;
-  }
-
-  .header-welcome{
-    flex-basis: 100%;
-    order: 3;
-  }
-
-  .welcome-line{
-    white-space: normal;
-    overflow-wrap: break-word;
-  }
-
-  .header-actions{
-    gap: 8px;
-    margin-inline-start: 0;
-  }
-
-  .meta-chip{
-    font-size: 10px;
-    padding: 3px 8px;
-  }
-
-  .meta-chip span:last-child{
-    max-inline-size: 72px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: bottom;
-  }
-
-  /* ---- Touch targets: buttons stay comfortably tappable ---- */
-
-  .theme-toggle-btn,
-  .notification-btn{
-    inline-size: 44px;
-    block-size: 44px;
-  }
-
-  .profile-photo-wrap{
-    inline-size: 40px;
-    block-size: 40px;
-  }
-
-  /* ---- Portal tabs: full width, equal segments, 44px touch target -- */
-
-  .portal-tabs{
-    top: auto;
-    position: static;
-    padding: 5px;
-    gap: 4px;
-  }
-
-  .portal-tab{
-    padding: 10px 8px;
-    font-size: 12.5px;
-    gap: 6px;
-  }
-
-  .portal-tab i{
-    font-size: 14px;
-  }
-
-  .tabs-nav{
-    padding: 5px;
-    gap: 4px;
-  }
-
-  .tab-btn{
-    padding: 9px 8px;
-    font-size: 12px;
-  }
-
-  /* ---- Section / card spacing: reduce padding, keep desktop as-is -- */
-
-  .dashboard-section{
-    padding-inline: 14px;
-    padding-block-start: 16px;
-  }
-
-  .section-heading h2{
-    font-size: 14.5px;
-  }
-
-  .kpi-card{
-    padding: 12px;
-    gap: 6px;
-    min-block-size: 96px;
-  }
-
-  .kpi-icon{
-    inline-size: 32px;
-    block-size: 32px;
-    font-size: 15px;
-  }
-
-  .kpi-label{
-    font-size: 11px;
-  }
-
-  .kpi-value{
-    font-size: 16.5px;
-  }
-
-  .kpi-subtitle{
-    font-size: 10.5px;
-  }
-
-  .company-card{
-    padding: 14px;
-  }
-
-  .company-icon{
-    inline-size: 30px;
-    block-size: 30px;
-    font-size: 15px;
-  }
-
-  .company-name{
-    font-size: 13.5px;
-  }
-
-  .company-metrics{
-    gap: 8px 10px;
-  }
-
-  .company-metric dd{
-    font-size: 12.5px;
-  }
-
-  .run-rate-card,
-  .projection-card{
-    padding: 14px;
-  }
-
-  .run-rate-card .kpi-value,
-  .projection-card .kpi-value{
-    font-size: 19px;
-  }
-
-  .returns-card{
-    padding: 12px;
-  }
-
-  .list-card{
-    padding: 10px;
-  }
-
-  .scrollable-list li:not(.empty-state){
-    font-size: 13px;
-    padding: 10px 12px;
-  }
-
-  .empty-state{
-    padding: 26px 12px;
-  }
-
-  .empty-state i{
-    font-size: 22px;
-  }
-
-  .data-table-wrapper{
-    max-block-size: 56vh;
-    border-radius: var(--sm-radius-md);
-  }
-
-  .data-table thead th,
-  .data-table tbody td{
-    padding: 9px 12px;
-  }
-
-  .table-search-icon,
-  .table-search-input{
-    block-size: 42px;
-  }
-
-  /* ---- Footer: wrap and center on very narrow screens ---- */
-
-  .salesman-footer{
-    justify-content: center;
-    text-align: center;
-    padding-inline: 14px;
-  }
-}
-
-/* Extra-narrow phones (iPhone SE / small Android — 320–360px) */
-@media (max-width: 360px){
-
-  .header-logo{
-    block-size: 32px;
-  }
-
-  .welcome-line{
-    font-size: 13.5px;
-  }
-
-  .header-subtitle{
-    font-size: 9.5px;
-  }
-
-  .portal-tab span{
-    max-inline-size: 76px;
-  }
-
-  .portal-tab{
-    font-size: 11.5px;
-    padding: 9px 6px;
-  }
-
-  .tab-btn{
-    font-size: 11px;
-    padding: 8px 6px;
-  }
-
-  .kpi-value{
-    font-size: 15px;
-  }
-
-  .company-name{
-    font-size: 12.5px;
-  }
-
-  .data-table{
-    min-inline-size: 420px;
-  }
-}
-
-/* ---------------------------------------------------------------------
-   13. ACCESSIBILITY
-   --------------------------------------------------------------------- */
-
-:focus-visible{
-  outline: 2px solid var(--sm-blue-500);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-button,
-input,
-[role="tab"]{
-  min-block-size: 40px;
-}
-
-.tab-btn:focus-visible,
-.portal-tab:focus-visible,
-.table-search-input:focus-visible{
-  outline: 2px solid var(--sm-blue-500);
-  outline-offset: 2px;
-}
-
-@media (prefers-contrast: more){
-  .kpi-card,
-  .company-card,
-  .run-rate-card,
-  .projection-card,
-  .returns-card,
-  .list-card,
-  .data-table-wrapper{
-    border-width: 1.5px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce){
-  .salesman-page *{
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* ---------------------------------------------------------------------
-   14. FUTURE TABLE SAFETY NET
-   Ensures any table markup inside #dashboardView / #salesDetailsView
-   never forces the page to scroll horizontally — only its own wrapper
-   scrolls. Purely defensive — does not affect any existing selector or
-   visual style.
-   --------------------------------------------------------------------- */
-
-#dashboardView,
-#salesDetailsView{
-  max-inline-size: 100%;
-  overflow-x: hidden;
-}
-
-#dashboardView table,
-#salesDetailsView table{
-  max-inline-size: 100%;
-}
-
-#dashboardView img,
-#salesDetailsView img,
-.salesman-page img{
-  max-inline-size: 100%;
-  block-size: auto;
-}
