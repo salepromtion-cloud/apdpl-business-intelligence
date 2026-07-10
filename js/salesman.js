@@ -84,7 +84,21 @@ const dom = {
 
   pharmaReturnValue: document.getElementById("pharmaReturnValue"),
   plReturnValue: document.getElementById("plReturnValue"),
-  returnPercentValue: document.getElementById("returnPercentValue")
+  returnPercentValue: document.getElementById("returnPercentValue"),
+
+  // ---- Sales Details module (new — sales-analysis.html markup, merged into
+  // salesman.html's #salesDetailsView). IDs reused as-is, nothing renamed. ----
+
+  dayWiseTotalSale: document.getElementById("dayWiseTotalSale"),
+  dayWiseTotalReturn: document.getElementById("dayWiseTotalReturn"),
+  dayWiseTotalNetSale: document.getElementById("dayWiseTotalNetSale"),
+  dayWiseTableBody: document.getElementById("dayWiseTableBody"),
+
+  customerSearch: document.getElementById("customerSearch"),
+  customerTableBody: document.getElementById("customerTableBody"),
+
+  routeSearch: document.getElementById("routeSearch"),
+  routeTableBody: document.getElementById("routeTableBody")
 };
 
 /* ---------------------------------------------------------------------------
@@ -729,6 +743,273 @@ function populateReturns(returns){
 }
 
 /* ---------------------------------------------------------------------------
+   15. SALES DETAILS MODULE (new — Day Wise / Customer Wise / Route Wise)
+
+   Reuses the SAME `summary` array already fetched by fetchFromAppsScript()
+   inside initSalesmanDashboard() — no additional API call is made here.
+
+   Assumed Summary sheet columns (consistent with computeReturns() above,
+   which already reads "Salesman", "Sales Value", "Return Value"):
+     - "Salesman"        → filter key (own records only)
+     - "Bill Date"       → Day Wise grouping key
+     - "Customer Code"   → Customer Wise grouping key
+     - "Customer Name"   → Customer Wise grouping key / display
+     - "Area"            → Route Wise grouping key (route/territory name)
+     - "Sales Value"     → Sale amount
+     - "Return Value"    → Return amount
+     - "Expiry Value"    → Expiry amount (Customer Wise / Route Wise only)
+
+   Net Sale = Sale − Return (Day Wise)
+   Net Sale = Sale − Return − Expiry (Customer Wise / Route Wise)
+   --------------------------------------------------------------------------- */
+
+// Module-level state — holds the salesman's own filtered/grouped rows so the
+// live search filters can re-render instantly without recomputation from
+// the raw summary array, and without any extra network calls.
+const salesDetailsState = {
+  ownRows: [],
+  dayWise: [],
+  customerWise: [],
+  routeWise: [],
+  listenersBound: false
+};
+
+function toNumber(value){
+  return Number(value) || 0;
+}
+
+/* ---- Grouping helpers ---- */
+
+function groupByDate(rows){
+  const map = new Map();
+
+  rows.forEach((row) => {
+    const key = String(row["Bill Date"] ?? "").trim() || "—";
+    const sale = toNumber(row["Sales Value"]);
+    const ret = toNumber(row["Return Value"]);
+
+    if (!map.has(key)){
+      map.set(key, { date: key, sale: 0, ret: 0 });
+    }
+
+    const entry = map.get(key);
+    entry.sale += sale;
+    entry.ret += ret;
+  });
+
+  return Array.from(map.values())
+    .map((entry) => ({
+      date: entry.date,
+      sale: entry.sale,
+      ret: entry.ret,
+      netSale: entry.sale - entry.ret
+    }))
+    .sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      if (!isNaN(dateA) && !isNaN(dateB)) return dateA - dateB;
+      return String(a.date).localeCompare(String(b.date));
+    });
+}
+
+function groupByCustomer(rows){
+  const map = new Map();
+
+  rows.forEach((row) => {
+    const code = String(row["Customer Code"] ?? "").trim() || "—";
+    const name = String(row["Customer Name"] ?? "").trim() || "—";
+    const key = `${code}__${name}`;
+
+    const sale = toNumber(row["Sales Value"]);
+    const ret = toNumber(row["Return Value"]);
+    const expiry = toNumber(row["Expiry Value"]);
+
+    if (!map.has(key)){
+      map.set(key, { code, name, sale: 0, ret: 0, expiry: 0 });
+    }
+
+    const entry = map.get(key);
+    entry.sale += sale;
+    entry.ret += ret;
+    entry.expiry += expiry;
+  });
+
+  return Array.from(map.values())
+    .map((entry) => ({
+      ...entry,
+      netSale: entry.sale - entry.ret - entry.expiry
+    }))
+    .sort((a, b) => b.sale - a.sale);
+}
+
+function groupByRoute(rows){
+  const map = new Map();
+
+  rows.forEach((row) => {
+    const area = String(row["Area"] ?? "").trim() || "—";
+    const customerCode = String(row["Customer Code"] ?? "").trim();
+
+    const sale = toNumber(row["Sales Value"]);
+    const ret = toNumber(row["Return Value"]);
+    const expiry = toNumber(row["Expiry Value"]);
+
+    if (!map.has(area)){
+      map.set(area, { area, sale: 0, ret: 0, expiry: 0, customers: new Set() });
+    }
+
+    const entry = map.get(area);
+    entry.sale += sale;
+    entry.ret += ret;
+    entry.expiry += expiry;
+    if (customerCode) entry.customers.add(customerCode);
+  });
+
+  return Array.from(map.values())
+    .map((entry) => ({
+      area: entry.area,
+      customerCount: entry.customers.size,
+      sale: entry.sale,
+      ret: entry.ret,
+      expiry: entry.expiry,
+      netSale: entry.sale - entry.ret - entry.expiry
+    }))
+    .sort((a, b) => b.sale - a.sale);
+}
+
+/* ---- Table rendering ---- */
+
+function renderEmptyRow(tbody, colspan, message){
+  tbody.innerHTML = `
+    <tr class="table-empty-row">
+      <td colspan="${colspan}">
+        <div class="empty-state">
+          <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+          <p>${message}</p>
+        </div>
+      </td>
+    </tr>`;
+}
+
+function renderDayWise(){
+  const rows = salesDetailsState.dayWise;
+
+  const totalSale = rows.reduce((sum, r) => sum + r.sale, 0);
+  const totalReturn = rows.reduce((sum, r) => sum + r.ret, 0);
+  const totalNetSale = totalSale - totalReturn;
+
+  animateValue(dom.dayWiseTotalSale, totalSale, { formatter: formatCurrency });
+  animateValue(dom.dayWiseTotalReturn, totalReturn, { formatter: formatCurrency });
+  animateValue(dom.dayWiseTotalNetSale, totalNetSale, { formatter: formatCurrency });
+
+  const tbody = dom.dayWiseTableBody;
+  if (!tbody) return;
+
+  if (rows.length === 0){
+    renderEmptyRow(tbody, 4, "No data available.");
+    return;
+  }
+
+  tbody.innerHTML = rows.map((row) => `
+    <tr>
+      <td>${row.date}</td>
+      <td>${formatCurrency(row.sale)}</td>
+      <td>${formatCurrency(row.ret)}</td>
+      <td>${formatCurrency(row.netSale)}</td>
+    </tr>`).join("");
+}
+
+function renderCustomerWise(){
+  const tbody = dom.customerTableBody;
+  if (!tbody) return;
+
+  const query = String(dom.customerSearch?.value ?? "").trim().toLowerCase();
+  const rows = !query
+    ? salesDetailsState.customerWise
+    : salesDetailsState.customerWise.filter((row) =>
+        row.code.toLowerCase().includes(query) ||
+        row.name.toLowerCase().includes(query)
+      );
+
+  if (rows.length === 0){
+    renderEmptyRow(tbody, 6, "No data available.");
+    return;
+  }
+
+  tbody.innerHTML = rows.map((row) => `
+    <tr>
+      <td>${row.code}</td>
+      <td>${row.name}</td>
+      <td>${formatCurrency(row.sale)}</td>
+      <td>${formatCurrency(row.ret)}</td>
+      <td>${formatCurrency(row.expiry)}</td>
+      <td>${formatCurrency(row.netSale)}</td>
+    </tr>`).join("");
+}
+
+function renderRouteWise(){
+  const tbody = dom.routeTableBody;
+  if (!tbody) return;
+
+  const query = String(dom.routeSearch?.value ?? "").trim().toLowerCase();
+  const rows = !query
+    ? salesDetailsState.routeWise
+    : salesDetailsState.routeWise.filter((row) =>
+        row.area.toLowerCase().includes(query)
+      );
+
+  if (rows.length === 0){
+    renderEmptyRow(tbody, 6, "No data available.");
+    return;
+  }
+
+  tbody.innerHTML = rows.map((row) => `
+    <tr>
+      <td>${row.area}</td>
+      <td>${formatNumber(row.customerCount)}</td>
+      <td>${formatCurrency(row.sale)}</td>
+      <td>${formatCurrency(row.ret)}</td>
+      <td>${formatCurrency(row.expiry)}</td>
+      <td>${formatCurrency(row.netSale)}</td>
+    </tr>`).join("");
+}
+
+/* ---- Live search wiring (bound once) ---- */
+
+function bindSalesDetailsSearchListeners(){
+  if (salesDetailsState.listenersBound) return;
+
+  if (dom.customerSearch){
+    dom.customerSearch.addEventListener("input", renderCustomerWise);
+  }
+  if (dom.routeSearch){
+    dom.routeSearch.addEventListener("input", renderRouteWise);
+  }
+
+  salesDetailsState.listenersBound = true;
+}
+
+/* ---- Entry point for the Sales Details module ---- */
+
+function initSalesDetails(summary, salesmanName){
+  const normalizedName = String(salesmanName).trim().toLowerCase();
+
+  const ownRows = Array.isArray(summary)
+    ? summary.filter((row) => String(row.Salesman).trim().toLowerCase() === normalizedName)
+    : [];
+
+  salesDetailsState.ownRows = ownRows;
+  salesDetailsState.dayWise = groupByDate(ownRows);
+  salesDetailsState.customerWise = groupByCustomer(ownRows);
+  salesDetailsState.routeWise = groupByRoute(ownRows);
+
+  bindSalesDetailsSearchListeners();
+
+  renderDayWise();
+  renderCustomerWise();
+  renderRouteWise();
+}
+
+/* ---------------------------------------------------------------------------
    13. INIT / ORCHESTRATION
    --------------------------------------------------------------------------- */
 
@@ -777,6 +1058,8 @@ async function initSalesmanDashboard(){
 
     const returns = computeReturns(summary, salesmanRow.SalesmanName);
     populateReturns(returns);
+
+    initSalesDetails(summary, salesmanRow.SalesmanName);
 
   } catch (err) {
     console.error("Failed to load salesman dashboard:", err);
