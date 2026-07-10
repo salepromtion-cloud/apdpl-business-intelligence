@@ -22,6 +22,12 @@ const dom = {
   rankBadge: document.getElementById("rankBadge"),
   themeToggleBtn: document.getElementById("themeToggleBtn"),
 
+  // Portal navigation (new — Dashboard / Sales Details tabs)
+  dashboardTabBtn: document.getElementById("dashboardTabBtn"),
+  detailsTabBtn: document.getElementById("detailsTabBtn"),
+  dashboardView: document.getElementById("dashboardView"),
+  salesDetailsView: document.getElementById("salesDetailsView"),
+
   mtdSaleValue: document.getElementById("mtdSaleValue"),
   mtdSaleSubtitle: document.getElementById("mtdSaleSubtitle"),
   monthlyTargetValue: document.getElementById("monthlyTargetValue"),
@@ -332,6 +338,71 @@ function initThemeToggle(){
   if (dom.themeToggleBtn){
     dom.themeToggleBtn.addEventListener("click", toggleTheme);
   }
+}
+
+/* ---------------------------------------------------------------------------
+   4c. PORTAL TABS (new — Dashboard / Sales Details switching)
+   No page reload, no additional API calls — purely toggles visibility and
+   remembers the last-selected tab in sessionStorage.
+   --------------------------------------------------------------------------- */
+
+const PORTAL_TAB_STORAGE_KEY = "salesmanPortalTab";
+
+function getSavedPortalTab(){
+  try {
+    const value = sessionStorage.getItem(PORTAL_TAB_STORAGE_KEY);
+    return value === "dashboard" || value === "details" ? value : null;
+  } catch (err) {
+    console.error("Failed to read saved portal tab from sessionStorage:", err);
+    return null;
+  }
+}
+
+function savePortalTab(tabName){
+  try {
+    sessionStorage.setItem(PORTAL_TAB_STORAGE_KEY, tabName);
+  } catch (err) {
+    console.error("Failed to save portal tab to sessionStorage:", err);
+  }
+}
+
+function activatePortalTab(tabName){
+  const isDashboard = tabName === "dashboard";
+
+  if (dom.dashboardView){
+    dom.dashboardView.hidden = !isDashboard;
+  }
+  if (dom.salesDetailsView){
+    dom.salesDetailsView.hidden = isDashboard;
+  }
+
+  if (dom.dashboardTabBtn){
+    dom.dashboardTabBtn.classList.toggle("is-active", isDashboard);
+    dom.dashboardTabBtn.setAttribute("aria-selected", String(isDashboard));
+    dom.dashboardTabBtn.tabIndex = isDashboard ? 0 : -1;
+  }
+
+  if (dom.detailsTabBtn){
+    dom.detailsTabBtn.classList.toggle("is-active", !isDashboard);
+    dom.detailsTabBtn.setAttribute("aria-selected", String(!isDashboard));
+    dom.detailsTabBtn.tabIndex = isDashboard ? -1 : 0;
+  }
+
+  savePortalTab(tabName);
+}
+
+function initPortalTabs(){
+  if (dom.dashboardTabBtn){
+    dom.dashboardTabBtn.addEventListener("click", () => activatePortalTab("dashboard"));
+  }
+
+  if (dom.detailsTabBtn){
+    dom.detailsTabBtn.addEventListener("click", () => activatePortalTab("details"));
+  }
+
+  // Restore last-selected tab (defaults to "dashboard" if none saved).
+  const savedTab = getSavedPortalTab() || "dashboard";
+  activatePortalTab(savedTab);
 }
 
 /* ---------------------------------------------------------------------------
@@ -717,12 +788,14 @@ async function initSalesmanDashboard(){
 
 /* ---------------------------------------------------------------------------
    14. ENTRY POINT
-   Theme is applied immediately (no need to wait on the API call), then the
-   dashboard data load kicks off. Single set of listeners — no duplicates.
+   Theme is applied immediately (no need to wait on the API call), portal
+   tabs are wired next, then the dashboard data load kicks off. Single set
+   of listeners — no duplicates.
    --------------------------------------------------------------------------- */
 
 function bootSalesmanDashboard(){
   initThemeToggle();
+  initPortalTabs();
   initSalesmanDashboard();
 }
 
