@@ -86,8 +86,16 @@ const dom = {
   plReturnValue: document.getElementById("plReturnValue"),
   returnPercentValue: document.getElementById("returnPercentValue"),
 
-  // ---- Sales Details module (new — sales-analysis.html markup, merged into
+  // ---- Sales Details module (sales-analysis.html markup, merged into
   // salesman.html's #salesDetailsView). IDs reused as-is, nothing renamed. ----
+
+  // Sub-tab navigation (Day Wise / Customer Wise / Route Wise)
+  dayWiseTabBtn: document.getElementById("dayWiseTabBtn"),
+  customerWiseTabBtn: document.getElementById("customerWiseTabBtn"),
+  routeWiseTabBtn: document.getElementById("routeWiseTabBtn"),
+  dayWisePanel: document.getElementById("dayWisePanel"),
+  customerWisePanel: document.getElementById("customerWisePanel"),
+  routeWisePanel: document.getElementById("routeWisePanel"),
 
   dayWiseTotalSale: document.getElementById("dayWiseTotalSale"),
   dayWiseTotalReturn: document.getElementById("dayWiseTotalReturn"),
@@ -126,6 +134,26 @@ function formatNumber(value){
 function formatPercent(value){
   if (!Number.isFinite(value)) return "—";
   return `${value.toFixed(2)}%`;
+}
+
+// Formats any parseable date value as DD-MMM-YYYY (e.g. "08-Jun-2026").
+// Falls back to the raw original string if it can't be parsed as a date.
+const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function formatBillDate(rawValue){
+  if (rawValue === null || rawValue === undefined || rawValue === "") return "—";
+
+  const date = rawValue instanceof Date ? rawValue : new Date(rawValue);
+
+  if (isNaN(date.getTime())){
+    return String(rawValue);
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = MONTH_ABBR[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day}-${month}-${year}`;
 }
 
 /* ---------------------------------------------------------------------------
@@ -355,7 +383,7 @@ function initThemeToggle(){
 }
 
 /* ---------------------------------------------------------------------------
-   4c. PORTAL TABS (new — Dashboard / Sales Details switching)
+   4c. PORTAL TABS (Dashboard / Sales Details switching)
    No page reload, no additional API calls — purely toggles visibility and
    remembers the last-selected tab in sessionStorage.
    --------------------------------------------------------------------------- */
@@ -743,7 +771,7 @@ function populateReturns(returns){
 }
 
 /* ---------------------------------------------------------------------------
-   15. SALES DETAILS MODULE (new — Day Wise / Customer Wise / Route Wise)
+   15. SALES DETAILS MODULE (Day Wise / Customer Wise / Route Wise)
 
    Reuses the SAME `summary` array already fetched by fetchFromAppsScript()
    inside initSalesmanDashboard() — no additional API call is made here.
@@ -764,14 +792,15 @@ function populateReturns(returns){
    --------------------------------------------------------------------------- */
 
 // Module-level state — holds the salesman's own filtered/grouped rows so the
-// live search filters can re-render instantly without recomputation from
-// the raw summary array, and without any extra network calls.
+// live search filters and sub-tab switches can re-render instantly without
+// recomputation from the raw summary array, and without any extra network calls.
 const salesDetailsState = {
   ownRows: [],
-  dayWise: [],
+  dayWise: [],       // each row keeps both a raw sortable date and its display label
   customerWise: [],
   routeWise: [],
-  listenersBound: false
+  listenersBound: false,
+  tabsBound: false
 };
 
 function toNumber(value){
@@ -784,12 +813,17 @@ function groupByDate(rows){
   const map = new Map();
 
   rows.forEach((row) => {
-    const key = String(row["Bill Date"] ?? "").trim() || "—";
+    const rawDate = row["Bill Date"];
+    // Group by the parsed calendar day (falls back to the raw string if it
+    // can't be parsed) so identical dates in different formats still merge.
+    const parsed = rawDate instanceof Date ? rawDate : new Date(rawDate);
+    const key = !isNaN(parsed?.getTime?.()) ? parsed.toDateString() : (String(rawDate ?? "").trim() || "—");
+
     const sale = toNumber(row["Sales Value"]);
     const ret = toNumber(row["Return Value"]);
 
     if (!map.has(key)){
-      map.set(key, { date: key, sale: 0, ret: 0 });
+      map.set(key, { rawDate, sale: 0, ret: 0 });
     }
 
     const entry = map.get(key);
@@ -798,18 +832,20 @@ function groupByDate(rows){
   });
 
   return Array.from(map.values())
-    .map((entry) => ({
-      date: entry.date,
-      sale: entry.sale,
-      ret: entry.ret,
-      netSale: entry.sale - entry.ret
-    }))
-    .sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      if (!isNaN(dateA) && !isNaN(dateB)) return dateA - dateB;
-      return String(a.date).localeCompare(String(b.date));
-    });
+    .map((entry) => {
+      const parsed = entry.rawDate instanceof Date ? entry.rawDate : new Date(entry.rawDate);
+      const sortTime = !isNaN(parsed?.getTime?.()) ? parsed.getTime() : 0;
+
+      return {
+        display: formatBillDate(entry.rawDate),
+        sortTime,
+        sale: entry.sale,
+        ret: entry.ret,
+        netSale: entry.sale - entry.ret
+      };
+    })
+    // Newest date first.
+    .sort((a, b) => b.sortTime - a.sortTime);
 }
 
 function groupByCustomer(rows){
@@ -911,7 +947,7 @@ function renderDayWise(){
 
   tbody.innerHTML = rows.map((row) => `
     <tr>
-      <td>${row.date}</td>
+      <td>${row.display}</td>
       <td>${formatCurrency(row.sale)}</td>
       <td>${formatCurrency(row.ret)}</td>
       <td>${formatCurrency(row.netSale)}</td>
@@ -988,6 +1024,55 @@ function bindSalesDetailsSearchListeners(){
   salesDetailsState.listenersBound = true;
 }
 
+/* ---- Sub-tab switching (Day Wise / Customer Wise / Route Wise), bound once ---- */
+
+function activateSalesAnalysisTab(tabName){
+  const panels = {
+    day: dom.dayWisePanel,
+    customer: dom.customerWisePanel,
+    route: dom.routeWisePanel
+  };
+  const buttons = {
+    day: dom.dayWiseTabBtn,
+    customer: dom.customerWiseTabBtn,
+    route: dom.routeWiseTabBtn
+  };
+
+  Object.keys(panels).forEach((key) => {
+    const isActive = key === tabName;
+    const panel = panels[key];
+    const btn = buttons[key];
+
+    if (panel){
+      panel.hidden = !isActive;
+    }
+    if (btn){
+      btn.classList.toggle("is-active", isActive);
+      btn.setAttribute("aria-selected", String(isActive));
+      btn.tabIndex = isActive ? 0 : -1;
+    }
+  });
+}
+
+function bindSalesAnalysisTabListeners(){
+  if (salesDetailsState.tabsBound) return;
+
+  if (dom.dayWiseTabBtn){
+    dom.dayWiseTabBtn.addEventListener("click", () => activateSalesAnalysisTab("day"));
+  }
+  if (dom.customerWiseTabBtn){
+    dom.customerWiseTabBtn.addEventListener("click", () => activateSalesAnalysisTab("customer"));
+  }
+  if (dom.routeWiseTabBtn){
+    dom.routeWiseTabBtn.addEventListener("click", () => activateSalesAnalysisTab("route"));
+  }
+
+  // Default panel on first load — matches the markup's initial "Day Wise" state.
+  activateSalesAnalysisTab("day");
+
+  salesDetailsState.tabsBound = true;
+}
+
 /* ---- Entry point for the Sales Details module ---- */
 
 function initSalesDetails(summary, salesmanName){
@@ -1002,6 +1087,7 @@ function initSalesDetails(summary, salesmanName){
   salesDetailsState.customerWise = groupByCustomer(ownRows);
   salesDetailsState.routeWise = groupByRoute(ownRows);
 
+  bindSalesAnalysisTabListeners();
   bindSalesDetailsSearchListeners();
 
   renderDayWise();
