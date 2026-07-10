@@ -194,6 +194,33 @@
 }
 
 /* ---------------------------------------------------------------------
+   2b. GLOBAL OVERFLOW GUARD (new)
+   Belt-and-braces rule so html/body/.salesman-page can never scroll
+   horizontally, regardless of what content is added inside sections
+   (including future Sales Details tables). Vertical scrolling is
+   untouched. box-sizing is set globally so padding/border never push
+   an element wider than its declared width on small screens.
+   --------------------------------------------------------------------- */
+
+html,
+body{
+  max-inline-size: 100%;
+  overflow-x: hidden;
+}
+
+.salesman-page{
+  max-inline-size: 100vw;
+  overflow-x: hidden;
+}
+
+.salesman-page,
+.salesman-page *,
+.salesman-page *::before,
+.salesman-page *::after{
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------
    3. HEADER
    --------------------------------------------------------------------- */
 
@@ -225,6 +252,7 @@
 .header-logo{
   block-size: 40px;
   inline-size: auto;
+  max-inline-size: 100%;
   object-fit: contain;
 }
 
@@ -282,6 +310,7 @@
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--sm-ink-soft);
+  max-inline-size: 100%;
   transition: background-color var(--sm-theme-duration) var(--sm-ease),
               border-color var(--sm-theme-duration) var(--sm-ease),
               color var(--sm-theme-duration) var(--sm-ease);
@@ -290,6 +319,7 @@
 .meta-chip i{
   font-size: 12px;
   color: var(--sm-blue-500);
+  flex-shrink: 0;
 }
 
 .header-actions{
@@ -378,6 +408,7 @@
 .profile-photo{
   inline-size: 100%;
   block-size: 100%;
+  max-inline-size: 100%;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--sm-surface);
@@ -407,6 +438,92 @@
   font-size: 9.5px;
   font-weight: 600;
   border: 2px solid var(--sm-surface);
+}
+
+/* ---------------------------------------------------------------------
+   3b. PORTAL NAVIGATION (new)
+   Segmented control below the header for switching between Dashboard
+   and Sales Details. Reuses existing --sm-* tokens only — no new colors
+   introduced, so light/dark mode are supported automatically.
+   --------------------------------------------------------------------- */
+
+.portal-tabs{
+  position: sticky;
+  top: var(--sm-header-height);
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  inline-size: 100%;
+  max-inline-size: var(--sm-max-width);
+  margin-inline: auto;
+  padding: 6px;
+  background: var(--sm-surface-2);
+  border: 1px solid var(--sm-border);
+  border-block-end: 1px solid var(--sm-border);
+  box-shadow: var(--sm-shadow-sm);
+  transition: background-color var(--sm-theme-duration) var(--sm-ease),
+              border-color var(--sm-theme-duration) var(--sm-ease);
+}
+
+.portal-tab{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: var(--sm-radius-sm);
+  background: transparent;
+  color: var(--sm-ink-soft);
+  font-family: var(--sm-font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--sm-duration) var(--sm-ease),
+              color var(--sm-duration) var(--sm-ease),
+              box-shadow var(--sm-duration) var(--sm-ease),
+              transform var(--sm-duration) var(--sm-ease);
+}
+
+.portal-tab i{
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.portal-tab span{
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.portal-tab:hover{
+  background: var(--sm-surface);
+  color: var(--sm-ink);
+  transform: translateY(-1px);
+}
+
+.portal-tab:active{
+  transform: translateY(0);
+}
+
+.portal-tab.is-active{
+  background: var(--sm-surface);
+  color: var(--sm-blue-600);
+  box-shadow: var(--sm-shadow-sm);
+}
+
+.portal-tab.is-active:hover{
+  transform: none;
+}
+
+.portal-tab:focus-visible{
+  outline: 2px solid var(--sm-blue-500);
+  outline-offset: 2px;
 }
 
 /* ---------------------------------------------------------------------
@@ -480,6 +597,7 @@
   border-radius: var(--sm-radius-lg);
   box-shadow: var(--sm-shadow-sm);
   overflow: hidden;
+  min-inline-size: 0;
   transition: transform var(--sm-duration) var(--sm-ease),
               box-shadow var(--sm-duration) var(--sm-ease),
               border-color var(--sm-duration) var(--sm-ease),
@@ -558,12 +676,15 @@
   color: var(--sm-ink);
   letter-spacing: -0.01em;
   line-height: 1.1;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .kpi-subtitle{
   font-size: 11.5px;
   color: var(--sm-ink-faint);
   line-height: 1.4;
+  overflow-wrap: break-word;
 }
 
 /* Today's Required Sale — completed/achieved single-line centered state */
@@ -595,6 +716,7 @@
   border: 1px solid var(--sm-border);
   border-radius: var(--sm-radius-lg);
   box-shadow: var(--sm-shadow-sm);
+  min-inline-size: 0;
   transition: transform var(--sm-duration) var(--sm-ease),
               box-shadow var(--sm-duration) var(--sm-ease),
               background-color var(--sm-theme-duration) var(--sm-ease);
@@ -610,6 +732,7 @@
   align-items: center;
   gap: 10px;
   margin-block-end: 16px;
+  min-inline-size: 0;
 }
 
 .company-icon{
@@ -629,6 +752,10 @@
   font-size: 15.5px;
   font-weight: 600;
   color: var(--sm-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-inline-size: 0;
 }
 
 .company-metrics{
@@ -642,6 +769,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-inline-size: 0;
 }
 
 .company-metric dt{
@@ -656,6 +784,8 @@
   font-size: 14.5px;
   font-weight: 500;
   color: var(--sm-ink);
+  overflow-wrap: break-word;
+  word-break: break-word;
   transition: color var(--sm-duration) var(--sm-ease);
 }
 
@@ -727,6 +857,7 @@
   border-radius: var(--sm-radius-lg);
   box-shadow: var(--sm-shadow-sm);
   overflow: hidden;
+  min-inline-size: 0;
   transition: transform var(--sm-duration) var(--sm-ease),
               box-shadow var(--sm-duration) var(--sm-ease),
               background-color var(--sm-theme-duration) var(--sm-ease);
@@ -746,11 +877,14 @@
 .run-rate-card .kpi-value,
 .projection-card .kpi-value{
   font-size: clamp(22px, 2.6vw, 28px);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .run-rate-card .kpi-subtitle,
 .projection-card .kpi-subtitle{
   font-weight: 500;
+  overflow-wrap: break-word;
 }
 
 #currentRunRateCard::before{
@@ -818,6 +952,7 @@
   border-inline-start: 3px solid var(--sm-red-500);
   border-radius: var(--sm-radius-md);
   box-shadow: var(--sm-shadow-sm);
+  min-inline-size: 0;
   transition: transform var(--sm-duration) var(--sm-ease),
               box-shadow var(--sm-duration) var(--sm-ease),
               background-color var(--sm-theme-duration) var(--sm-ease);
@@ -830,6 +965,8 @@
 
 .returns-card .kpi-value{
   color: var(--sm-red-500);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .returns-card .kpi-icon{
@@ -887,6 +1024,7 @@
   border: 1px solid var(--sm-border-soft);
   font-size: 13.5px;
   color: var(--sm-ink);
+  overflow-wrap: break-word;
   transition: background-color var(--sm-duration) var(--sm-ease),
               transform var(--sm-duration) var(--sm-ease),
               box-shadow var(--sm-duration) var(--sm-ease);
@@ -929,6 +1067,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 18px var(--sm-gutter) 26px;
   max-inline-size: var(--sm-max-width);
@@ -939,6 +1078,11 @@
   letter-spacing: 0.03em;
   color: var(--sm-ink-faint);
   border-block-start: 1px solid var(--sm-border-soft);
+}
+
+.salesman-footer span{
+  overflow-wrap: break-word;
+  min-inline-size: 0;
 }
 
 /* ---------------------------------------------------------------------
@@ -963,6 +1107,13 @@
   .run-rate-grid,
   .projection-grid{
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 640px){
+  .portal-tab{
+    flex: 0 1 auto;
+    padding: 10px 24px;
   }
 }
 
@@ -1009,6 +1160,217 @@
 }
 
 /* ---------------------------------------------------------------------
+   11b. MOBILE HARDENING (<=480px, and extra-narrow 320–360px devices)
+   Responsive-only fixes — no new visual style, no color/token changes,
+   no redesign. Desktop (>=1080px) rules above are untouched.
+   --------------------------------------------------------------------- */
+
+@media (max-width: 480px){
+
+  /* ---- Header: keep logo, greeting, chips, and action buttons inside
+     the viewport; stack gracefully instead of clipping/overflowing. --- */
+
+  .salesman-header{
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding-block: 10px;
+  }
+
+  .header-logo{
+    block-size: 32px;
+  }
+
+  .header-welcome{
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .welcome-line{
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .header-actions{
+    gap: 8px;
+    margin-inline-start: 0;
+  }
+
+  .meta-chip{
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .meta-chip span:last-child{
+    max-inline-size: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
+  }
+
+  /* ---- Touch targets: buttons stay comfortably tappable ---- */
+
+  .theme-toggle-btn,
+  .notification-btn{
+    inline-size: 44px;
+    block-size: 44px;
+  }
+
+  .profile-photo-wrap{
+    inline-size: 40px;
+    block-size: 40px;
+  }
+
+  /* ---- Portal tabs: full width, equal segments, 44px touch target -- */
+
+  .portal-tabs{
+    top: auto;
+    position: static;
+    padding: 5px;
+    gap: 4px;
+  }
+
+  .portal-tab{
+    padding: 10px 8px;
+    font-size: 12.5px;
+    gap: 6px;
+  }
+
+  .portal-tab i{
+    font-size: 14px;
+  }
+
+  /* ---- Section / card spacing: reduce padding, keep desktop as-is -- */
+
+  .dashboard-section{
+    padding-inline: 14px;
+    padding-block-start: 18px;
+  }
+
+  .section-heading h2{
+    font-size: 15px;
+  }
+
+  .kpi-card{
+    padding: 14px;
+    gap: 8px;
+  }
+
+  .kpi-icon{
+    inline-size: 34px;
+    block-size: 34px;
+    font-size: 16px;
+  }
+
+  .kpi-label{
+    font-size: 11.5px;
+  }
+
+  .kpi-value{
+    font-size: 18px;
+  }
+
+  .kpi-subtitle{
+    font-size: 11px;
+  }
+
+  .company-card{
+    padding: 16px;
+  }
+
+  .company-icon{
+    inline-size: 32px;
+    block-size: 32px;
+    font-size: 16px;
+  }
+
+  .company-name{
+    font-size: 14px;
+  }
+
+  .company-metrics{
+    gap: 10px 12px;
+  }
+
+  .company-metric dd{
+    font-size: 13px;
+  }
+
+  .run-rate-card,
+  .projection-card{
+    padding: 16px;
+  }
+
+  .run-rate-card .kpi-value,
+  .projection-card .kpi-value{
+    font-size: 20px;
+  }
+
+  .returns-card{
+    padding: 14px;
+  }
+
+  .list-card{
+    padding: 12px;
+  }
+
+  .scrollable-list li:not(.empty-state){
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  .empty-state{
+    padding: 28px 12px;
+  }
+
+  .empty-state i{
+    font-size: 22px;
+  }
+
+  /* ---- Footer: wrap and center on very narrow screens ---- */
+
+  .salesman-footer{
+    justify-content: center;
+    text-align: center;
+    padding-inline: 14px;
+  }
+}
+
+/* Extra-narrow phones (iPhone SE / small Android — 320–360px) */
+@media (max-width: 360px){
+
+  .header-logo{
+    block-size: 28px;
+  }
+
+  .welcome-line{
+    font-size: 13px;
+  }
+
+  .header-subtitle{
+    font-size: 10.5px;
+  }
+
+  .portal-tab span{
+    max-inline-size: 76px;
+  }
+
+  .portal-tab{
+    font-size: 11.5px;
+    padding: 9px 6px;
+  }
+
+  .kpi-value{
+    font-size: 16px;
+  }
+
+  .company-name{
+    font-size: 13px;
+  }
+}
+
+/* ---------------------------------------------------------------------
    12. ACCESSIBILITY
    --------------------------------------------------------------------- */
 
@@ -1023,4 +1385,31 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------------------------------------------------------------------
+   13. FUTURE TABLE SAFETY NET (Sales Details module)
+   Ensures that if table markup is ever placed directly inside
+   #dashboardView / #salesDetailsView without its own dedicated
+   stylesheet, any horizontal overflow it produces is contained to a
+   scrollable wrapper rather than the page. Purely defensive — does not
+   affect any existing selector or visual style.
+   --------------------------------------------------------------------- */
+
+#dashboardView,
+#salesDetailsView{
+  max-inline-size: 100%;
+  overflow-x: hidden;
+}
+
+#dashboardView table,
+#salesDetailsView table{
+  max-inline-size: 100%;
+}
+
+#dashboardView img,
+#salesDetailsView img,
+.salesman-page img{
+  max-inline-size: 100%;
+  block-size: auto;
 }

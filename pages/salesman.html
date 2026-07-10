@@ -71,6 +71,35 @@
       </div>
     </header>
 
+    <!-- ================= PORTAL NAVIGATION ================= -->
+    <nav class="portal-tabs" id="portalTabs" role="tablist" aria-label="Salesman portal views">
+      <button
+        type="button"
+        class="portal-tab is-active"
+        id="dashboardTabBtn"
+        role="tab"
+        aria-selected="true"
+        aria-controls="dashboardView">
+        <i class="bi bi-speedometer2" aria-hidden="true"></i>
+        <span>Dashboard</span>
+      </button>
+
+      <button
+        type="button"
+        class="portal-tab"
+        id="detailsTabBtn"
+        role="tab"
+        aria-selected="false"
+        aria-controls="salesDetailsView"
+        tabindex="-1">
+        <i class="bi bi-table" aria-hidden="true"></i>
+        <span>Sales Details</span>
+      </button>
+    </nav>
+
+    <!-- ================= DASHBOARD VIEW (Tab 1) ================= -->
+    <div id="dashboardView" role="tabpanel" aria-labelledby="dashboardTabBtn">
+
     <!-- ================= SECTION 1 — OVERALL PERFORMANCE ================= -->
     <section class="dashboard-section" id="overallPerformanceSection" aria-labelledby="overallPerformanceTitle">
       <div class="section-heading">
@@ -373,6 +402,18 @@
         </ul>
       </article>
     </section>
+
+    </div>
+    <!-- ================= END DASHBOARD VIEW ================= -->
+
+    <!-- ================= SALES DETAILS VIEW (Tab 2 — placeholder) ================= -->
+    <div id="salesDetailsView" role="tabpanel" aria-labelledby="detailsTabBtn" hidden>
+      <section class="dashboard-section" id="salesDetailsPlaceholderSection">
+        <h2>Sales Details</h2>
+        <p>Sales Details module will be loaded here.</p>
+      </section>
+    </div>
+    <!-- ================= END SALES DETAILS VIEW ================= -->
 
     <!-- ================= FOOTER ================= -->
     <footer class="salesman-footer" id="salesmanFooter">
