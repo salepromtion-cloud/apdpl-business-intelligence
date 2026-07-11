@@ -1,1199 +1,655 @@
-/* =============================================================================
-   APDPL Business Intelligence — Salesman Dashboard Logic
-   Scope: pages/salesman.html ONLY (population of existing ids, no markup/CSS)
-
-   Data source: fetchFromAppsScript() from ./api.js — the ONLY API function used.
-   No duplicate fetch logic, no other API functions created.
-   ============================================================================= */
-
-import { fetchFromAppsScript } from "./api.js";
-
-/* ---------------------------------------------------------------------------
-   1. DOM REFERENCES (existing ids from salesman.html — not modified)
-   --------------------------------------------------------------------------- */
-
-const dom = {
-  page: document.getElementById("salesmanPage"),
-
-  salesmanName: document.getElementById("salesmanName"),
-  financialMonthChip: document.querySelector("#financialMonth span:last-child"),
-  todaysDateChip: document.querySelector("#todaysDate span:last-child"),
-  profilePhoto: document.getElementById("profilePhoto"),
-  rankBadge: document.getElementById("rankBadge"),
-  themeToggleBtn: document.getElementById("themeToggleBtn"),
-
-  // Portal navigation (new — Dashboard / Sales Details tabs)
-  dashboardTabBtn: document.getElementById("dashboardTabBtn"),
-  detailsTabBtn: document.getElementById("detailsTabBtn"),
-  dashboardView: document.getElementById("dashboardView"),
-  salesDetailsView: document.getElementById("salesDetailsView"),
-
-  mtdSaleValue: document.getElementById("mtdSaleValue"),
-  mtdSaleSubtitle: document.getElementById("mtdSaleSubtitle"),
-  monthlyTargetValue: document.getElementById("monthlyTargetValue"),
-  monthlyTargetSubtitle: document.getElementById("monthlyTargetSubtitle"),
-  achievementValue: document.getElementById("achievementValue"),
-  achievementSubtitle: document.getElementById("achievementSubtitle"),
-  pendingTargetValue: document.getElementById("pendingTargetValue"),
-  pendingTargetSubtitle: document.getElementById("pendingTargetSubtitle"),
-  todaysRequiredSaleValue: document.getElementById("todaysRequiredSaleValue"),
-  todaysRequiredSaleSubtitle: document.getElementById("todaysRequiredSaleSubtitle"),
-  overallUobValue: document.getElementById("overallUobValue"),
-  overallUobSubtitle: document.getElementById("overallUobSubtitle"),
-
-  pharma: {
-    sale: document.getElementById("pharmaSaleValue"),
-    target: document.getElementById("pharmaTargetValue"),
-    achievement: document.getElementById("pharmaAchievementValue"),
-    pending: document.getElementById("pharmaPendingValue"),
-    uob: document.getElementById("pharmaUobValue"),
-    fill: document.getElementById("pharmaProgressFill"),
-    track: document.getElementById("pharmaProgressTrack"),
-    status: document.getElementById("pharmaStatusValue")
-  },
-  pl: {
-    sale: document.getElementById("plSaleValue"),
-    target: document.getElementById("plTargetValue"),
-    achievement: document.getElementById("plAchievementValue"),
-    pending: document.getElementById("plPendingValue"),
-    uob: document.getElementById("plUobValue"),
-    fill: document.getElementById("plProgressFill"),
-    track: document.getElementById("plProgressTrack"),
-    status: document.getElementById("plStatusValue")
-  },
-  zenvito: {
-    sale: document.getElementById("zenvitoSaleValue"),
-    target: document.getElementById("zenvitoTargetValue"),
-    achievement: document.getElementById("zenvitoAchievementValue"),
-    pending: document.getElementById("zenvitoPendingValue"),
-    uob: document.getElementById("zenvitoUobValue"),
-    fill: document.getElementById("zenvitoProgressFill"),
-    track: document.getElementById("zenvitoProgressTrack"),
-    status: document.getElementById("zenvitoStatusValue")
-  },
-
-  currentRunRateValue: document.getElementById("currentRunRateValue"),
-  currentRunRateSubtitle: document.getElementById("currentRunRateSubtitle"),
-  requiredRunRateValue: document.getElementById("requiredRunRateValue"),
-  requiredRunRateSubtitle: document.getElementById("requiredRunRateSubtitle"),
-
-  projectedMonthEndValue: document.getElementById("projectedMonthEndValue"),
-  projectedMonthEndSubtitle: document.getElementById("projectedMonthEndSubtitle"),
-  gapToTargetValue: document.getElementById("gapToTargetValue"),
-  gapToTargetSubtitle: document.getElementById("gapToTargetSubtitle"),
-
-  pharmaReturnValue: document.getElementById("pharmaReturnValue"),
-  plReturnValue: document.getElementById("plReturnValue"),
-  returnPercentValue: document.getElementById("returnPercentValue"),
-
-  // ---- Sales Details module (sales-analysis.html markup, merged into
-  // salesman.html's #salesDetailsView). IDs reused as-is, nothing renamed. ----
-
-  // Sub-tab navigation (Day Wise / Customer Wise / Route Wise)
-  dayWiseTabBtn: document.getElementById("dayWiseTabBtn"),
-  customerWiseTabBtn: document.getElementById("customerWiseTabBtn"),
-  routeWiseTabBtn: document.getElementById("routeWiseTabBtn"),
-  dayWisePanel: document.getElementById("dayWisePanel"),
-  customerWisePanel: document.getElementById("customerWisePanel"),
-  routeWisePanel: document.getElementById("routeWisePanel"),
-
-  dayWiseTotalSale: document.getElementById("dayWiseTotalSale"),
-  dayWiseTotalReturn: document.getElementById("dayWiseTotalReturn"),
-  dayWiseTotalNetSale: document.getElementById("dayWiseTotalNetSale"),
-  dayWiseTableBody: document.getElementById("dayWiseTableBody"),
-
-  customerSearch: document.getElementById("customerSearch"),
-  customerTableBody: document.getElementById("customerTableBody"),
-
-  routeSearch: document.getElementById("routeSearch"),
-  routeTableBody: document.getElementById("routeTableBody")
-};
-
-/* ---------------------------------------------------------------------------
-   2. FORMATTING HELPERS (Indian currency / number / percent)
-   --------------------------------------------------------------------------- */
-
-const inrFormatter = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0
-});
-
-const numberFormatter = new Intl.NumberFormat("en-IN");
-
-function formatCurrency(value){
-  if (!Number.isFinite(value)) return "—";
-  return inrFormatter.format(value);
-}
-
-function formatNumber(value){
-  if (!Number.isFinite(value)) return "—";
-  return numberFormatter.format(Math.round(value));
-}
-
-function formatPercent(value){
-  if (!Number.isFinite(value)) return "—";
-  return `${value.toFixed(2)}%`;
-}
-
-// Formats any parseable date value as DD-MMM-YYYY (e.g. "08-Jun-2026").
-// Falls back to the raw original string if it can't be parsed as a date.
-const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-function formatBillDate(rawValue){
-  if (rawValue === null || rawValue === undefined || rawValue === "") return "—";
-
-  const date = rawValue instanceof Date ? rawValue : new Date(rawValue);
-
-  if (isNaN(date.getTime())){
-    return String(rawValue);
-  }
-
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = MONTH_ABBR[date.getMonth()];
-  const year = date.getFullYear();
-
-  return `${day}-${month}-${year}`;
-}
-
-/* ---------------------------------------------------------------------------
-   2b. BUSINESS-LOGIC HELPERS (new — normalization, status, greeting, avatar)
-   --------------------------------------------------------------------------- */
-
-// Auto-detects fraction (0.78) vs whole percent (78) from the sheet and
-// always returns a value on the 0–100 scale.
-function normalizePercent(value){
-  const num = Number(value) || 0;
-  return num <= 1 ? num * 100 : num;
-}
-
-// Maps a percentage to a status color for progress bars / text.
-function getProgressColor(percent){
-  if (percent >= 80) return "var(--success, #22c55e)";
-  if (percent >= 50) return "var(--warning, #f59e0b)";
-  return "var(--danger, #ef4444)";
-}
-
-// Greeting based on system time.
-function getGreeting(){
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good Morning";
-  if (hour < 17) return "Good Afternoon";
-  return "Good Evening";
-}
-
-// Initials avatar fallback (data URI — no new DOM elements required).
-function generateInitialsAvatar(name){
-  const initials = String(name || "?")
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("") || "?";
-
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96">
-      <rect width="100%" height="100%" rx="48" fill="#6366f1"/>
-      <text x="50%" y="50%" dy=".35em" text-anchor="middle"
-            font-family="Arial, sans-serif" font-size="36" fill="#ffffff">
-        ${initials}
-      </text>
-    </svg>`.trim();
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
-
-// Company status label based on normalized achievement percentage.
-function getCompanyStatus(pct){
-  if (pct >= 90) return "Excellent";
-  if (pct >= 70) return "Good";
-  if (pct >= 50) return "Average";
-  return "Poor";
-}
-
-// Run rate Ahead/Behind status + daily difference.
-function getRunRateStatus(current, required){
-  const diff = current - required;
-  return {
-    label: diff >= 0 ? "Ahead of Target" : "Behind Target",
-    color: diff >= 0 ? "var(--success, #22c55e)" : "var(--danger, #ef4444)",
-    diff
-  };
-}
-
-// Forecast status per the business tiers.
-function getForecastStatus(projectedSale, target){
-  if (target <= 0) return { label: "—", color: "inherit" };
-  const pct = (projectedSale / target) * 100;
-
-  if (pct >= 100) return { label: "🏆 Target Achieved", color: "var(--success, #22c55e)" };
-  if (pct >= 95)  return { label: "🎯 Almost There", color: "var(--success, #22c55e)" };
-  if (pct >= 80)  return { label: "👍 On Track", color: "var(--warning, #f59e0b)" };
-  if (pct >= 60)  return { label: "⚠ Needs Push", color: "var(--warning, #f59e0b)" };
-  return { label: "🚨 Immediate Attention", color: "var(--danger, #ef4444)" };
-}
-
-// Formats today's date using browser local time (NOT sheet data).
-// Example: "Wednesday, 09 Jul 2026"
-function getFormattedTodayDate(){
-  return new Date().toLocaleDateString("en-IN", {
-    weekday: "long", day: "2-digit", month: "short", year: "numeric"
-  });
-}
-
-// Normalizes the Unit Snapshot's Financial Year value into an "FY ..." label
-// without hardcoding the year — reads whatever the sheet provides.
-function getFinancialYearLabel(rawValue){
-  const value = String(rawValue || "").trim();
-  if (!value || value === "—") return "—";
-  return value.toUpperCase().startsWith("FY") ? value : `FY ${value}`;
-}
-
-/* ---------------------------------------------------------------------------
-   3. ANIMATION HELPERS
-   --------------------------------------------------------------------------- */
-
-function animateValue(el, endValue, { formatter = formatNumber, duration = 700 } = {}){
-  if (!el || !Number.isFinite(endValue)){
-    if (el) el.textContent = "—";
-    return;
-  }
-
-  const startTime = performance.now();
-
-  function tick(now){
-    const progress = Math.min((now - startTime) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-    const current = endValue * eased;
-    el.textContent = formatter(current);
-
-    if (progress < 1){
-      requestAnimationFrame(tick);
-    } else {
-      el.textContent = formatter(endValue);
-    }
-  }
-
-  requestAnimationFrame(tick);
-}
-
-// Updated: animates the fill smoothly AND colors it based on percent.
-function animateProgress(fillEl, trackEl, percent){
-  if (!fillEl) return;
-  const clamped = Math.max(0, Math.min(100, Number.isFinite(percent) ? percent : 0));
-
-  fillEl.style.inlineSize = "0%";
-  fillEl.style.transition = "inline-size 700ms ease-out, background-color 300ms ease";
-  fillEl.style.backgroundColor = getProgressColor(clamped);
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      fillEl.style.inlineSize = `${clamped}%`;
-    });
-  });
-
-  if (trackEl){
-    trackEl.setAttribute("aria-valuenow", clamped.toFixed(0));
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   4. SESSION HELPERS
-   --------------------------------------------------------------------------- */
-
-function getLoggedInUser(){
-  try {
-    const raw = sessionStorage.getItem("user");
-    if (!raw) return null;
-
-    const user = JSON.parse(raw);
-    if (!user || !user.email) return null;
-
-    return user;
-  } catch (err) {
-    console.error("Failed to read logged-in user from sessionStorage:", err);
-    return null;
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   4a. AUTHENTICATION / AUTHORIZATION GUARD (new — salesman-only access)
-   --------------------------------------------------------------------------- */
-
-// Validates that a logged-in salesman is viewing this page.
-// - No session -> redirect to login (../index.html)
-// - Session exists but role isn't "salesman" -> redirect to dashboard.html
-// Returns the session user object only when validation succeeds.
-function validateSalesmanAccess(){
-  const sessionUser = getLoggedInUser();
-
-  if (!sessionUser){
-    window.location.href = "../index.html";
-    return null;
-  }
-
-  const role = String(sessionUser.role || "").trim().toLowerCase();
-
-  if (role !== "salesman"){
-    window.location.href = "dashboard.html";
-    return null;
-  }
-
-  return sessionUser;
-}
-
-/* ---------------------------------------------------------------------------
-   4c. THEME TOGGLE (light / dark) — localStorage persisted, system-aware
-   --------------------------------------------------------------------------- */
-
-const THEME_STORAGE_KEY = "apdpl-theme";
-
-function getSystemPreferredTheme(){
-  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
-function getSavedTheme(){
-  try {
-    return localStorage.getItem(THEME_STORAGE_KEY);
-  } catch (err) {
-    console.error("Failed to read saved theme from localStorage:", err);
-    return null;
-  }
-}
-
-function saveTheme(theme){
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-  } catch (err) {
-    console.error("Failed to save theme to localStorage:", err);
-  }
-}
-
-function updateThemeToggleIcon(theme){
-  if (!dom.themeToggleBtn) return;
-
-  const icon = dom.themeToggleBtn.querySelector("i");
-  if (icon){
-    icon.classList.remove("bi-moon-stars", "bi-sun");
-    icon.classList.add(theme === "dark" ? "bi-sun" : "bi-moon-stars");
-  }
-
-  dom.themeToggleBtn.setAttribute("aria-pressed", String(theme === "dark"));
-  dom.themeToggleBtn.setAttribute(
-    "aria-label",
-    theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
-  );
-}
-
-function applyTheme(theme){
-  document.documentElement.setAttribute("data-theme", theme);
-  updateThemeToggleIcon(theme);
-}
-
-function toggleTheme(){
-  const current = document.documentElement.getAttribute("data-theme") || getSystemPreferredTheme();
-  const next = current === "dark" ? "light" : "dark";
-  applyTheme(next);
-  saveTheme(next);
-}
-
-function initThemeToggle(){
-  const initialTheme = getSavedTheme() || getSystemPreferredTheme();
-  applyTheme(initialTheme);
-
-  if (dom.themeToggleBtn){
-    dom.themeToggleBtn.addEventListener("click", toggleTheme);
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   4c. PORTAL TABS (Dashboard / Sales Details switching)
-   No page reload, no additional API calls — purely toggles visibility and
-   remembers the last-selected tab in sessionStorage.
-   --------------------------------------------------------------------------- */
-
-const PORTAL_TAB_STORAGE_KEY = "salesmanPortalTab";
-
-function getSavedPortalTab(){
-  try {
-    const value = sessionStorage.getItem(PORTAL_TAB_STORAGE_KEY);
-    return value === "dashboard" || value === "details" ? value : null;
-  } catch (err) {
-    console.error("Failed to read saved portal tab from sessionStorage:", err);
-    return null;
-  }
-}
-
-function savePortalTab(tabName){
-  try {
-    sessionStorage.setItem(PORTAL_TAB_STORAGE_KEY, tabName);
-  } catch (err) {
-    console.error("Failed to save portal tab to sessionStorage:", err);
-  }
-}
-
-function activatePortalTab(tabName){
-  const isDashboard = tabName === "dashboard";
-
-  if (dom.dashboardView){
-    dom.dashboardView.hidden = !isDashboard;
-  }
-  if (dom.salesDetailsView){
-    dom.salesDetailsView.hidden = isDashboard;
-  }
-
-  if (dom.dashboardTabBtn){
-    dom.dashboardTabBtn.classList.toggle("is-active", isDashboard);
-    dom.dashboardTabBtn.setAttribute("aria-selected", String(isDashboard));
-    dom.dashboardTabBtn.tabIndex = isDashboard ? 0 : -1;
-  }
-
-  if (dom.detailsTabBtn){
-    dom.detailsTabBtn.classList.toggle("is-active", !isDashboard);
-    dom.detailsTabBtn.setAttribute("aria-selected", String(!isDashboard));
-    dom.detailsTabBtn.tabIndex = isDashboard ? -1 : 0;
-  }
-
-  savePortalTab(tabName);
-}
-
-function initPortalTabs(){
-  if (dom.dashboardTabBtn){
-    dom.dashboardTabBtn.addEventListener("click", () => activatePortalTab("dashboard"));
-  }
-
-  if (dom.detailsTabBtn){
-    dom.detailsTabBtn.addEventListener("click", () => activatePortalTab("details"));
-  }
-
-  // Restore last-selected tab (defaults to "dashboard" if none saved).
-  const savedTab = getSavedPortalTab() || "dashboard";
-  activatePortalTab(savedTab);
-}
-
-/* ---------------------------------------------------------------------------
-   5. LOADING / ERROR STATE HELPERS
-   --------------------------------------------------------------------------- */
-
-function setLoadingState(isLoading){
-  if (!dom.page) return;
-  dom.page.setAttribute("aria-busy", String(isLoading));
-}
-
-function setFatalMessage(message){
-  const subtitleEls = [
-    dom.mtdSaleSubtitle, dom.monthlyTargetSubtitle, dom.achievementSubtitle,
-    dom.pendingTargetSubtitle, dom.todaysRequiredSaleSubtitle, dom.overallUobSubtitle
-  ];
-
-  subtitleEls.forEach((el) => {
-    if (el) el.textContent = message;
-  });
-}
-
-/* ---------------------------------------------------------------------------
-   6. SALESMAN LOOKUP (exact sheet column name — Email)
-   --------------------------------------------------------------------------- */
-
-function findSalesmanRow(salesmanSnapshot, email){
-  if (!Array.isArray(salesmanSnapshot)) return null;
-
-  return salesmanSnapshot.find(
-    (row) =>
-      String(row.Email).trim().toLowerCase() ===
-      String(email).trim().toLowerCase()
-  ) || null;
-}
-
-/* ---------------------------------------------------------------------------
-   7. HEADER POPULATION — greeting + avatar fallback added
-   --------------------------------------------------------------------------- */
-
-function populateHeader(salesmanRow, unit, sessionUser, rank){
-  const name = salesmanRow.SalesmanName || "—";
-
-  if (dom.salesmanName){
-    dom.salesmanName.textContent = `${getGreeting()}, ${name}`;
-  }
-
-  if (dom.profilePhoto){
-    if (sessionUser?.photo){
-      dom.profilePhoto.src = sessionUser.photo;
-    } else {
-      dom.profilePhoto.src = generateInitialsAvatar(name);
-    }
-    dom.profilePhoto.alt = `${name} profile photo`;
-  }
-
-  if (dom.rankBadge){
-    dom.rankBadge.textContent = rank ? `#${rank}` : "—";
-  }
-
-  if (dom.financialMonthChip){
-    dom.financialMonthChip.textContent = getFinancialYearLabel(unit?.["Financial Year"]);
-  }
-
-  if (dom.todaysDateChip){
-    // Uses the browser's local time, NOT the sheet's Today's Date / Financial
-    // Year Start Date — always reflects the visitor's actual current date.
-    dom.todaysDateChip.textContent = getFormattedTodayDate();
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   7b. RANK CALCULATION (based on Overall Sale, not Role)
-   --------------------------------------------------------------------------- */
-
-function computeSalesmanRank(salesmanSnapshot, email){
-  if (!Array.isArray(salesmanSnapshot) || salesmanSnapshot.length === 0) return null;
-
-  const ranked = salesmanSnapshot
-    .map((row) => ({
-      email: row.Email,
-      overallSale:
-        (Number(row.AchievementPharma) || 0) +
-        (Number(row.AchievementPI) || 0) +
-        (Number(row.AchievementZenvito) || 0)
-    }))
-    .sort((a, b) => b.overallSale - a.overallSale);
-
-  const normalizedEmail = String(email).trim().toLowerCase();
-  const index = ranked.findIndex(
-    (row) => String(row.email).trim().toLowerCase() === normalizedEmail
-  );
-
-  return index === -1 ? null : index + 1;
-}
-
-/* ---------------------------------------------------------------------------
-   8. OVERALL KPI CALCULATION + POPULATION — required sale edge cases + wording
-   --------------------------------------------------------------------------- */
-
-function computeOverallKpis(salesmanRow, unit){
-  const targetPharma = Number(salesmanRow.TargetPharma) || 0;
-  const targetPI = Number(salesmanRow.TargetPI) || 0;
-  const targetZenvito = Number(salesmanRow.TargetZenvito) || 0;
-
-  const achievementPharma = Number(salesmanRow.AchievementPharma) || 0;
-  const achievementPI = Number(salesmanRow.AchievementPI) || 0;
-  const achievementZenvito = Number(salesmanRow.AchievementZenvito) || 0;
-
-  const uobPharma = Number(salesmanRow.UOBPharma) || 0;
-  const uobPI = Number(salesmanRow.UOBPI) || 0;
-  const uobZenvito = Number(salesmanRow.UOBZenvito) || 0;
-
-  const overallTarget = targetPharma + targetPI + targetZenvito;
-  const overallSale = achievementPharma + achievementPI + achievementZenvito;
-  const pendingTarget = overallTarget - overallSale;
-  const overallAchievementPct = overallTarget > 0 ? (overallSale / overallTarget) * 100 : 0;
-  const overallUob = uobPharma + uobPI + uobZenvito;
-
-  const remainingWorkingDays = Number(unit?.["Remaining Working Days"]) || 0;
-
-  const isPeriodCompleted = remainingWorkingDays <= 0;
-  const isTargetAchieved = pendingTarget <= 0;
-  const todaysRequiredSale = (!isPeriodCompleted && !isTargetAchieved)
-    ? pendingTarget / remainingWorkingDays
-    : 0;
-
-  return {
-    overallTarget,
-    overallSale,
-    pendingTarget,
-    overallAchievementPct,
-    overallUob,
-    todaysRequiredSale,
-    remainingWorkingDays,
-    isPeriodCompleted,
-    isTargetAchieved
-  };
-}
-
-function populateOverallKpis(kpis){
-  animateValue(dom.mtdSaleValue, kpis.overallSale, { formatter: formatCurrency });
-  animateValue(dom.monthlyTargetValue, kpis.overallTarget, { formatter: formatCurrency });
-  animateValue(dom.achievementValue, kpis.overallAchievementPct, { formatter: formatPercent });
-  animateValue(dom.pendingTargetValue, kpis.pendingTarget, { formatter: formatCurrency });
-  animateValue(dom.overallUobValue, kpis.overallUob, { formatter: formatNumber });
-
-  if (dom.todaysRequiredSaleValue){
-    if (kpis.isPeriodCompleted){
-      dom.todaysRequiredSaleValue.textContent = "Target Period Completed";
-    } else if (kpis.isTargetAchieved){
-      dom.todaysRequiredSaleValue.textContent = "Target Achieved 🎉";
-    } else {
-      animateValue(dom.todaysRequiredSaleValue, kpis.todaysRequiredSale, { formatter: formatCurrency });
-    }
-  }
-
-  if (dom.mtdSaleSubtitle) dom.mtdSaleSubtitle.textContent = "Month to date";
-  if (dom.monthlyTargetSubtitle) dom.monthlyTargetSubtitle.textContent = "Assigned this month";
-  if (dom.achievementSubtitle) dom.achievementSubtitle.textContent = "Against monthly target";
-  if (dom.pendingTargetSubtitle) dom.pendingTargetSubtitle.textContent = "Remaining to achieve";
-  if (dom.todaysRequiredSaleSubtitle){
-    dom.todaysRequiredSaleSubtitle.textContent = kpis.isPeriodCompleted
-      ? "No working days remaining"
-      : kpis.isTargetAchieved
-        ? "Target already met — great work!"
-        : `Over ${formatNumber(kpis.remainingWorkingDays)} working day(s) left`;
-  }
-  if (dom.overallUobSubtitle) dom.overallUobSubtitle.textContent = "Units on board";
-}
-
-/* ---------------------------------------------------------------------------
-   9. COMPANY CARDS (Pharma / PI (PL) / Zenvito) — normalized %, status shown
-      separately (not mixed into the value), skipped gracefully if no status
-      element exists in the HTML.
-   --------------------------------------------------------------------------- */
-
-function populateCompanyCard(refs, target, achievement, achievementPct, uob){
-  const pending = target - achievement;
-  const normalizedPct = normalizePercent(achievementPct);
-  const status = getCompanyStatus(normalizedPct);
-
-  animateValue(refs.sale, achievement, { formatter: formatCurrency });
-  animateValue(refs.target, target, { formatter: formatCurrency });
-
-  // Animate ONLY the percentage — no status text mixed in.
-  animateValue(refs.achievement, normalizedPct, { formatter: formatPercent });
-  if (refs.achievement){
-    refs.achievement.style.color = getProgressColor(normalizedPct);
-  }
-
-  // Status goes in its own element if present; otherwise skipped — never breaks.
-  if (refs.status){
-    refs.status.textContent = status;
-    refs.status.style.color = getProgressColor(normalizedPct);
-  }
-
-  animateValue(refs.pending, pending, { formatter: formatCurrency });
-  animateValue(refs.uob, uob, { formatter: formatNumber });
-  animateProgress(refs.fill, refs.track, normalizedPct);
-}
-
-function populateCompanyCards(salesmanRow){
-  const targetPharma = Number(salesmanRow.TargetPharma) || 0;
-  const targetPI = Number(salesmanRow.TargetPI) || 0;
-  const targetZenvito = Number(salesmanRow.TargetZenvito) || 0;
-
-  const achievementPharma = Number(salesmanRow.AchievementPharma) || 0;
-  const achievementPI = Number(salesmanRow.AchievementPI) || 0;
-  const achievementZenvito = Number(salesmanRow.AchievementZenvito) || 0;
-
-  const achievementPercentPharma = Number(salesmanRow.AchievementPercentPharma) || 0;
-  const achievementPercentPI = Number(salesmanRow.AchievementPercentPI) || 0;
-  const achievementPercentZenvito = Number(salesmanRow.AchievementPercentZenvito) || 0;
-
-  const uobPharma = Number(salesmanRow.UOBPharma) || 0;
-  const uobPI = Number(salesmanRow.UOBPI) || 0;
-  const uobZenvito = Number(salesmanRow.UOBZenvito) || 0;
-
-  populateCompanyCard(dom.pharma, targetPharma, achievementPharma, achievementPercentPharma, uobPharma);
-  populateCompanyCard(dom.pl, targetPI, achievementPI, achievementPercentPI, uobPI);
-  populateCompanyCard(dom.zenvito, targetZenvito, achievementZenvito, achievementPercentZenvito, uobZenvito);
-}
-
-/* ---------------------------------------------------------------------------
-   10. RUN RATE — status label + daily difference in existing subtitle
-   --------------------------------------------------------------------------- */
-
-function computeRunRate(kpis, unit){
-  const daysCompleted = Number(unit?.["Days Completed"]) || 0;
-  const remainingWorkingDays = kpis.remainingWorkingDays;
-
-  const currentRunRate = daysCompleted > 0 ? kpis.overallSale / daysCompleted : 0;
-  const requiredRunRate = remainingWorkingDays > 0
-    ? kpis.pendingTarget / remainingWorkingDays
-    : 0;
-
-  return { currentRunRate, requiredRunRate, daysCompleted };
-}
-
-function populateRunRate(runRate){
-  animateValue(dom.currentRunRateValue, runRate.currentRunRate, { formatter: formatCurrency });
-  animateValue(dom.requiredRunRateValue, runRate.requiredRunRate, { formatter: formatCurrency });
-
-  const status = getRunRateStatus(runRate.currentRunRate, runRate.requiredRunRate);
-
-  if (dom.currentRunRateSubtitle){
-    dom.currentRunRateSubtitle.textContent = runRate.daysCompleted > 0
-      ? `Based on ${formatNumber(runRate.daysCompleted)} day(s) completed`
-      : "Average daily sale so far";
-  }
-  if (dom.requiredRunRateSubtitle){
-    dom.requiredRunRateSubtitle.textContent =
-      `${status.label} · Diff ${formatCurrency(Math.abs(status.diff))}/day`;
-    dom.requiredRunRateSubtitle.style.color = status.color;
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   11. PROJECTION — forecast tiers per business rules
-   --------------------------------------------------------------------------- */
-
-function computeProjection(kpis, runRate, unit){
-  const totalWorkingDays = Number(unit?.["Total Working Days"]) || 0;
-
-  const projectedMonthEndSale = runRate.currentRunRate * totalWorkingDays;
-  const gapToTarget = kpis.overallTarget - projectedMonthEndSale;
-
-  return { projectedMonthEndSale, gapToTarget };
-}
-
-function populateProjection(projection, kpis){
-  animateValue(dom.projectedMonthEndValue, projection.projectedMonthEndSale, { formatter: formatCurrency });
-  animateValue(dom.gapToTargetValue, projection.gapToTarget, { formatter: formatCurrency });
-
-  const forecast = getForecastStatus(projection.projectedMonthEndSale, kpis.overallTarget);
-
-  if (dom.projectedMonthEndSubtitle){
-    dom.projectedMonthEndSubtitle.textContent = `At current run rate · ${forecast.label}`;
-    dom.projectedMonthEndSubtitle.style.color = forecast.color;
-  }
-  if (dom.gapToTargetSubtitle){
-    dom.gapToTargetSubtitle.textContent = projection.gapToTarget > 0
-      ? "Projected shortfall"
-      : "Projected surplus";
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   12. RETURNS
-   Summary sheet has NO Email column — filtered by SalesmanName ("Salesman").
-   --------------------------------------------------------------------------- */
-
-function computeReturns(summary, salesmanName){
-  const normalizedName = String(salesmanName).trim().toLowerCase();
-
-  const ownRows = Array.isArray(summary)
-    ? summary.filter((row) => String(row.Salesman).trim().toLowerCase() === normalizedName)
-    : [];
-
-  const pharmaRows = ownRows.filter((row) => row.Company === "Pharma");
-  const plRows = ownRows.filter((row) => row.Company === "PL");
-
-  const sumReturn = (rows) =>
-    rows.reduce((total, row) => total + (Number(row["Return Value"]) || 0), 0);
-
-  const sumSale = (rows) =>
-    rows.reduce((total, row) => total + (Number(row["Sales Value"]) || 0), 0);
-
-  const pharmaReturn = sumReturn(pharmaRows);
-  const plReturn = sumReturn(plRows);
-
-  const totalReturn = pharmaReturn + plReturn;
-  const totalSale = sumSale(pharmaRows) + sumSale(plRows);
-  const returnPercent = totalSale > 0 ? (totalReturn / totalSale) * 100 : 0;
-
-  return { pharmaReturn, plReturn, returnPercent };
-}
-
-function populateReturns(returns){
-  animateValue(dom.pharmaReturnValue, returns.pharmaReturn, { formatter: formatCurrency });
-  animateValue(dom.plReturnValue, returns.plReturn, { formatter: formatCurrency });
-  animateValue(dom.returnPercentValue, returns.returnPercent, { formatter: formatPercent });
-}
-
-/* ---------------------------------------------------------------------------
-   15. SALES DETAILS MODULE (Day Wise / Customer Wise / Route Wise)
-
-   Reuses the SAME `summary` array already fetched by fetchFromAppsScript()
-   inside initSalesmanDashboard() — no additional API call is made here.
-
-   Assumed Summary sheet columns (consistent with computeReturns() above,
-   which already reads "Salesman", "Sales Value", "Return Value"):
-     - "Salesman"        → filter key (own records only)
-     - "Bill Date"       → Day Wise grouping key
-     - "Customer Code"   → Customer Wise grouping key
-     - "Customer Name"   → Customer Wise grouping key / display
-     - "Area"            → Route Wise grouping key (route/territory name)
-     - "Sales Value"     → Sale amount
-     - "Return Value"    → Return amount
-     - "Expiry Value"    → Expiry amount (Customer Wise / Route Wise only)
-
-   Net Sale = Sale − Return (Day Wise)
-   Net Sale = Sale − Return − Expiry (Customer Wise / Route Wise)
-   --------------------------------------------------------------------------- */
-
-// Module-level state — holds the salesman's own filtered/grouped rows so the
-// live search filters and sub-tab switches can re-render instantly without
-// recomputation from the raw summary array, and without any extra network calls.
-const salesDetailsState = {
-  ownRows: [],
-  dayWise: [],       // each row keeps both a raw sortable date and its display label
-  customerWise: [],
-  routeWise: [],
-  listenersBound: false,
-  tabsBound: false
-};
-
-function toNumber(value){
-  return Number(value) || 0;
-}
-
-/* ---- Grouping helpers ---- */
-
-function groupByDate(rows){
-  const map = new Map();
-
-  rows.forEach((row) => {
-    const rawDate = row["Bill Date"];
-    // Group by the parsed calendar day (falls back to the raw string if it
-    // can't be parsed) so identical dates in different formats still merge.
-    const parsed = rawDate instanceof Date ? rawDate : new Date(rawDate);
-    const key = !isNaN(parsed?.getTime?.()) ? parsed.toDateString() : (String(rawDate ?? "").trim() || "—");
-
-    const sale = toNumber(row["Sales Value"]);
-    const ret = toNumber(row["Return Value"]);
-
-    if (!map.has(key)){
-      map.set(key, { rawDate, sale: 0, ret: 0 });
-    }
-
-    const entry = map.get(key);
-    entry.sale += sale;
-    entry.ret += ret;
-  });
-
-  return Array.from(map.values())
-    .map((entry) => {
-      const parsed = entry.rawDate instanceof Date ? entry.rawDate : new Date(entry.rawDate);
-      const sortTime = !isNaN(parsed?.getTime?.()) ? parsed.getTime() : 0;
-
-      return {
-        display: formatBillDate(entry.rawDate),
-        sortTime,
-        sale: entry.sale,
-        ret: entry.ret,
-        netSale: entry.sale - entry.ret
-      };
-    })
-    // Newest date first.
-    .sort((a, b) => b.sortTime - a.sortTime);
-}
-
-function groupByCustomer(rows){
-  const map = new Map();
-
-  rows.forEach((row) => {
-    const code = String(row["Customer Code"] ?? "").trim() || "—";
-    const name = String(row["Customer Name"] ?? "").trim() || "—";
-    const key = `${code}__${name}`;
-
-    const sale = toNumber(row["Sales Value"]);
-    const ret = toNumber(row["Return Value"]);
-    const expiry = toNumber(row["Expiry Value"]);
-
-    if (!map.has(key)){
-      map.set(key, { code, name, sale: 0, ret: 0, expiry: 0 });
-    }
-
-    const entry = map.get(key);
-    entry.sale += sale;
-    entry.ret += ret;
-    entry.expiry += expiry;
-  });
-
-  return Array.from(map.values())
-    .map((entry) => ({
-      ...entry,
-      netSale: entry.sale - entry.ret - entry.expiry
-    }))
-    .sort((a, b) => b.sale - a.sale);
-}
-
-function groupByRoute(rows){
-  const map = new Map();
-
-  rows.forEach((row) => {
-    const area = String(row["Area"] ?? "").trim() || "—";
-    const customerCode = String(row["Customer Code"] ?? "").trim();
-
-    const sale = toNumber(row["Sales Value"]);
-    const ret = toNumber(row["Return Value"]);
-    const expiry = toNumber(row["Expiry Value"]);
-
-    if (!map.has(area)){
-      map.set(area, { area, sale: 0, ret: 0, expiry: 0, customers: new Set() });
-    }
-
-    const entry = map.get(area);
-    entry.sale += sale;
-    entry.ret += ret;
-    entry.expiry += expiry;
-    if (customerCode) entry.customers.add(customerCode);
-  });
-
-  return Array.from(map.values())
-    .map((entry) => ({
-      area: entry.area,
-      customerCount: entry.customers.size,
-      sale: entry.sale,
-      ret: entry.ret,
-      expiry: entry.expiry,
-      netSale: entry.sale - entry.ret - entry.expiry
-    }))
-    .sort((a, b) => b.sale - a.sale);
-}
-
-/* ---- Table rendering ---- */
-
-function renderEmptyRow(tbody, colspan, message){
-  tbody.innerHTML = `
-    <tr class="table-empty-row">
-      <td colspan="${colspan}">
-        <div class="empty-state">
-          <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
-          <p>${message}</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salesman Dashboard — APDPL Business Intelligence</title>
+  <meta name="description" content="APDPL Business Intelligence — Salesman performance dashboard showing MTD sales, targets, achievement, run rate, projections, returns, focus products and announcements.">
+
+  <link rel="icon" type="image/png" href="../assets/images/logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <link rel="stylesheet" href="../css/salesman.css">
+  <link rel="stylesheet" href="../css/sales-analysis.css">
+</head>
+<body>
+
+  <main class="salesman-page" id="salesmanPage">
+
+    <!-- ================= HEADER ================= -->
+    <header class="salesman-header" id="salesmanHeader">
+
+      <!-- Row 1 (mobile): Logo + Profile | Desktop: Logo (left segment) -->
+      <div class="header-row header-row-top">
+
+        <div class="header-brand">
+          <img
+            src="../assets/images/logo.png"
+            alt="APDPL Business Intelligence logo"
+            class="header-logo"
+            id="headerLogo">
         </div>
-      </td>
-    </tr>`;
-}
 
-function renderDayWise(){
-  const rows = salesDetailsState.dayWise;
+        <!-- Profile moved up here so it sits beside the logo on mobile;
+             desktop layout keeps it at the end of the row via CSS order. -->
+        <div class="profile-block" id="profileBlock">
+          <div class="profile-photo-wrap">
+            <img
+              src=""
+              alt="Salesman profile photo"
+              class="profile-photo"
+              id="profilePhoto">
+            <span class="rank-badge" id="rankBadge">—</span>
+          </div>
+        </div>
 
-  const totalSale = rows.reduce((sum, r) => sum + r.sale, 0);
-  const totalReturn = rows.reduce((sum, r) => sum + r.ret, 0);
-  const totalNetSale = totalSale - totalReturn;
+      </div>
 
-  animateValue(dom.dayWiseTotalSale, totalSale, { formatter: formatCurrency });
-  animateValue(dom.dayWiseTotalReturn, totalReturn, { formatter: formatCurrency });
-  animateValue(dom.dayWiseTotalNetSale, totalNetSale, { formatter: formatCurrency });
+      <!-- Row 2 (mobile): Welcome + Salesman Name | Desktop: middle segment -->
+      <div class="header-row header-row-welcome">
 
-  const tbody = dom.dayWiseTableBody;
-  if (!tbody) return;
+        <div class="header-welcome" id="headerWelcome">
+          <p class="welcome-line">
+            <span class="salesman-name" id="salesmanName">—</span>
+          </p>
+          <p class="header-subtitle" id="headerSubtitle">My Performance Dashboard</p>
+          <div class="welcome-meta">
+            <span class="meta-chip" id="financialMonth">
+              <i class="bi bi-calendar3" aria-hidden="true"></i>
+              <span>—</span>
+            </span>
+          </div>
+        </div>
 
-  if (rows.length === 0){
-    renderEmptyRow(tbody, 4, "No data available.");
-    return;
-  }
+      </div>
 
-  tbody.innerHTML = rows.map((row) => `
-    <tr>
-      <td>${row.display}</td>
-      <td>${formatCurrency(row.sale)}</td>
-      <td>${formatCurrency(row.ret)}</td>
-      <td>${formatCurrency(row.netSale)}</td>
-    </tr>`).join("");
-}
+      <!-- Row 3 (mobile): Date + Theme + Notification | Desktop: right segment -->
+      <div class="header-row header-row-meta">
 
-function renderCustomerWise(){
-  const tbody = dom.customerTableBody;
-  if (!tbody) return;
+        <div class="header-actions">
+          <span class="meta-chip" id="todaysDate">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <span>—</span>
+          </span>
 
-  const query = String(dom.customerSearch?.value ?? "").trim().toLowerCase();
-  const rows = !query
-    ? salesDetailsState.customerWise
-    : salesDetailsState.customerWise.filter((row) =>
-        row.code.toLowerCase().includes(query) ||
-        row.name.toLowerCase().includes(query)
-      );
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle light or dark theme" aria-pressed="false">
+            <i class="bi bi-moon-stars" aria-hidden="true"></i>
+          </button>
 
-  if (rows.length === 0){
-    renderEmptyRow(tbody, 6, "No data available.");
-    return;
-  }
+          <button type="button" class="notification-btn" id="notificationBtn" aria-label="Notifications">
+            <i class="bi bi-bell" aria-hidden="true"></i>
+            <span class="notification-dot" id="notificationDot" hidden></span>
+          </button>
+        </div>
 
-  tbody.innerHTML = rows.map((row) => `
-    <tr>
-      <td>${row.code}</td>
-      <td>${row.name}</td>
-      <td>${formatCurrency(row.sale)}</td>
-      <td>${formatCurrency(row.ret)}</td>
-      <td>${formatCurrency(row.expiry)}</td>
-      <td>${formatCurrency(row.netSale)}</td>
-    </tr>`).join("");
-}
+      </div>
 
-function renderRouteWise(){
-  const tbody = dom.routeTableBody;
-  if (!tbody) return;
+    </header>
 
-  const query = String(dom.routeSearch?.value ?? "").trim().toLowerCase();
-  const rows = !query
-    ? salesDetailsState.routeWise
-    : salesDetailsState.routeWise.filter((row) =>
-        row.area.toLowerCase().includes(query)
-      );
+    <!-- ================= PORTAL NAVIGATION ================= -->
+    <nav class="portal-tabs" id="portalTabs" role="tablist" aria-label="Salesman portal views">
+      <button
+        type="button"
+        class="portal-tab is-active"
+        id="dashboardTabBtn"
+        role="tab"
+        aria-selected="true"
+        aria-controls="dashboardView">
+        <i class="bi bi-speedometer2" aria-hidden="true"></i>
+        <span>Dashboard</span>
+      </button>
 
-  if (rows.length === 0){
-    renderEmptyRow(tbody, 6, "No data available.");
-    return;
-  }
+      <button
+        type="button"
+        class="portal-tab"
+        id="detailsTabBtn"
+        role="tab"
+        aria-selected="false"
+        aria-controls="salesDetailsView"
+        tabindex="-1">
+        <i class="bi bi-table" aria-hidden="true"></i>
+        <span>Sales Details</span>
+      </button>
+    </nav>
 
-  tbody.innerHTML = rows.map((row) => `
-    <tr>
-      <td>${row.area}</td>
-      <td>${formatNumber(row.customerCount)}</td>
-      <td>${formatCurrency(row.sale)}</td>
-      <td>${formatCurrency(row.ret)}</td>
-      <td>${formatCurrency(row.expiry)}</td>
-      <td>${formatCurrency(row.netSale)}</td>
-    </tr>`).join("");
-}
+    <!-- ================= DASHBOARD VIEW (Tab 1) ================= -->
+    <div id="dashboardView" role="tabpanel" aria-labelledby="dashboardTabBtn">
 
-/* ---- Live search wiring (bound once) ---- */
+    <!-- ================= SECTION 1 — OVERALL PERFORMANCE ================= -->
+    <section class="dashboard-section" id="overallPerformanceSection" aria-labelledby="overallPerformanceTitle">
+      <div class="section-heading">
+        <h2 id="overallPerformanceTitle">Overall Performance</h2>
+      </div>
 
-function bindSalesDetailsSearchListeners(){
-  if (salesDetailsState.listenersBound) return;
+      <div class="kpi-grid" id="overallPerformanceGrid">
 
-  if (dom.customerSearch){
-    dom.customerSearch.addEventListener("input", renderCustomerWise);
-  }
-  if (dom.routeSearch){
-    dom.routeSearch.addEventListener("input", renderRouteWise);
-  }
+        <article class="kpi-card" id="kpiMtdSale">
+          <div class="kpi-icon kpi-icon-blue">
+            <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">MTD Sale</p>
+          <p class="kpi-value" id="mtdSaleValue">—</p>
+          <p class="kpi-subtitle" id="mtdSaleSubtitle">Month to date</p>
+        </article>
 
-  salesDetailsState.listenersBound = true;
-}
+        <article class="kpi-card" id="kpiMonthlyTarget">
+          <div class="kpi-icon kpi-icon-indigo">
+            <i class="bi bi-bullseye" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Monthly Target</p>
+          <p class="kpi-value" id="monthlyTargetValue">—</p>
+          <p class="kpi-subtitle" id="monthlyTargetSubtitle">Assigned this month</p>
+        </article>
 
-/* ---- Sub-tab switching (Day Wise / Customer Wise / Route Wise), bound once ---- */
+        <article class="kpi-card" id="kpiAchievement">
+          <div class="kpi-icon kpi-icon-teal">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Achievement %</p>
+          <p class="kpi-value" id="achievementValue">—</p>
+          <p class="kpi-subtitle" id="achievementSubtitle">Against monthly target</p>
+        </article>
 
-function activateSalesAnalysisTab(tabName){
-  const panels = {
-    day: dom.dayWisePanel,
-    customer: dom.customerWisePanel,
-    route: dom.routeWisePanel
-  };
-  const buttons = {
-    day: dom.dayWiseTabBtn,
-    customer: dom.customerWiseTabBtn,
-    route: dom.routeWiseTabBtn
-  };
+        <article class="kpi-card" id="kpiPendingTarget">
+          <div class="kpi-icon kpi-icon-amber">
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Pending Target</p>
+          <p class="kpi-value" id="pendingTargetValue">—</p>
+          <p class="kpi-subtitle" id="pendingTargetSubtitle">Remaining to achieve</p>
+        </article>
 
-  Object.keys(panels).forEach((key) => {
-    const isActive = key === tabName;
-    const panel = panels[key];
-    const btn = buttons[key];
+        <article class="kpi-card" id="kpiTodaysRequiredSale">
+          <div class="kpi-icon kpi-icon-rose">
+            <i class="bi bi-calendar2-check" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Today's Required Sale</p>
+          <p class="kpi-value" id="todaysRequiredSaleValue">—</p>
+          <p class="kpi-subtitle" id="todaysRequiredSaleSubtitle">To stay on track</p>
+        </article>
 
-    if (panel){
-      panel.hidden = !isActive;
-    }
-    if (btn){
-      btn.classList.toggle("is-active", isActive);
-      btn.setAttribute("aria-selected", String(isActive));
-      btn.tabIndex = isActive ? 0 : -1;
-    }
-  });
-}
+        <article class="kpi-card" id="kpiOverallUob">
+          <div class="kpi-icon kpi-icon-blue">
+            <i class="bi bi-box-seam" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Overall UOB</p>
+          <p class="kpi-value" id="overallUobValue">—</p>
+          <p class="kpi-subtitle" id="overallUobSubtitle">Units on board</p>
+        </article>
 
-function bindSalesAnalysisTabListeners(){
-  if (salesDetailsState.tabsBound) return;
+      </div>
+    </section>
 
-  if (dom.dayWiseTabBtn){
-    dom.dayWiseTabBtn.addEventListener("click", () => activateSalesAnalysisTab("day"));
-  }
-  if (dom.customerWiseTabBtn){
-    dom.customerWiseTabBtn.addEventListener("click", () => activateSalesAnalysisTab("customer"));
-  }
-  if (dom.routeWiseTabBtn){
-    dom.routeWiseTabBtn.addEventListener("click", () => activateSalesAnalysisTab("route"));
-  }
+    <!-- ================= SECTION 2 — COMPANY PERFORMANCE ================= -->
+    <section class="dashboard-section" id="companyPerformanceSection" aria-labelledby="companyPerformanceTitle">
+      <div class="section-heading">
+        <h2 id="companyPerformanceTitle">Company Performance</h2>
+      </div>
 
-  // Default panel on first load — matches the markup's initial "Day Wise" state.
-  activateSalesAnalysisTab("day");
+      <div class="company-grid" id="companyPerformanceGrid">
 
-  salesDetailsState.tabsBound = true;
-}
+        <article class="company-card" id="companyCardPharma">
+          <div class="company-card-header">
+            <span class="company-icon" aria-hidden="true">💊</span>
+            <h3 class="company-name">Pharma</h3>
+          </div>
 
-/* ---- Entry point for the Sales Details module ---- */
+          <dl class="company-metrics">
+            <div class="company-metric">
+              <dt>Sale</dt>
+              <dd id="pharmaSaleValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Target</dt>
+              <dd id="pharmaTargetValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Achievement %</dt>
+              <dd id="pharmaAchievementValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Pending</dt>
+              <dd id="pharmaPendingValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>UOB</dt>
+              <dd id="pharmaUobValue">—</dd>
+            </div>
+          </dl>
 
-function initSalesDetails(summary, salesmanName){
-  const normalizedName = String(salesmanName).trim().toLowerCase();
+          <div class="progress-track" id="pharmaProgressTrack" role="progressbar" aria-label="Pharma achievement progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="pharmaProgressFill"></div>
+          </div>
+        </article>
 
-  const ownRows = Array.isArray(summary)
-    ? summary.filter((row) => String(row.Salesman).trim().toLowerCase() === normalizedName)
-    : [];
+        <article class="company-card" id="companyCardPl">
+          <div class="company-card-header">
+            <span class="company-icon" aria-hidden="true">🏷️</span>
+            <h3 class="company-name">PL</h3>
+          </div>
 
-  salesDetailsState.ownRows = ownRows;
-  salesDetailsState.dayWise = groupByDate(ownRows);
-  salesDetailsState.customerWise = groupByCustomer(ownRows);
-  salesDetailsState.routeWise = groupByRoute(ownRows);
+          <dl class="company-metrics">
+            <div class="company-metric">
+              <dt>Sale</dt>
+              <dd id="plSaleValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Target</dt>
+              <dd id="plTargetValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Achievement %</dt>
+              <dd id="plAchievementValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Pending</dt>
+              <dd id="plPendingValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>UOB</dt>
+              <dd id="plUobValue">—</dd>
+            </div>
+          </dl>
 
-  bindSalesAnalysisTabListeners();
-  bindSalesDetailsSearchListeners();
+          <div class="progress-track" id="plProgressTrack" role="progressbar" aria-label="PL achievement progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="plProgressFill"></div>
+          </div>
+        </article>
 
-  renderDayWise();
-  renderCustomerWise();
-  renderRouteWise();
-}
+        <article class="company-card" id="companyCardZenvito">
+          <div class="company-card-header">
+            <span class="company-icon" aria-hidden="true">🌿</span>
+            <h3 class="company-name">Zenvito</h3>
+          </div>
 
-/* ---------------------------------------------------------------------------
-   13. INIT / ORCHESTRATION
-   --------------------------------------------------------------------------- */
+          <dl class="company-metrics">
+            <div class="company-metric">
+              <dt>Sale</dt>
+              <dd id="zenvitoSaleValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Target</dt>
+              <dd id="zenvitoTargetValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Achievement %</dt>
+              <dd id="zenvitoAchievementValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>Pending</dt>
+              <dd id="zenvitoPendingValue">—</dd>
+            </div>
+            <div class="company-metric">
+              <dt>UOB</dt>
+              <dd id="zenvitoUobValue">—</dd>
+            </div>
+          </dl>
 
-async function initSalesmanDashboard(){
-  setLoadingState(true);
+          <div class="progress-track" id="zenvitoProgressTrack" role="progressbar" aria-label="Zenvito achievement progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="zenvitoProgressFill"></div>
+          </div>
+        </article>
 
-  const sessionUser = validateSalesmanAccess();
+      </div>
+    </section>
 
-  if (!sessionUser){
-    return;
-  }
+    <!-- ================= SECTION 3 — RUN RATE ================= -->
+    <section class="dashboard-section" id="runRateSection" aria-labelledby="runRateTitle">
+      <div class="section-heading">
+        <h2 id="runRateTitle">Run Rate</h2>
+      </div>
 
-  try {
-    const data = await fetchFromAppsScript();
-    if (!data) {
-        throw new Error("Unable to load dashboard data.");
-    }
-    const { summary, salesmanSnapshot, unitSnapshot } = data;
+      <div class="run-rate-grid" id="runRateGrid">
 
-    // unitSnapshot may arrive as an object or as an array containing one object.
-    const unit = Array.isArray(unitSnapshot) ? unitSnapshot[0] : unitSnapshot;
+        <article class="run-rate-card" id="currentRunRateCard">
+          <div class="kpi-icon kpi-icon-teal">
+            <i class="bi bi-speedometer" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Current Run Rate (CRR)</p>
+          <p class="kpi-value" id="currentRunRateValue">—</p>
+          <p class="kpi-subtitle" id="currentRunRateSubtitle">Average daily sale so far</p>
+        </article>
 
-    const salesmanRow = findSalesmanRow(salesmanSnapshot, sessionUser.email);
+        <article class="run-rate-card" id="requiredRunRateCard">
+          <div class="kpi-icon kpi-icon-amber">
+            <i class="bi bi-graph-up" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Required Run Rate (RRR)</p>
+          <p class="kpi-value" id="requiredRunRateValue">—</p>
+          <p class="kpi-subtitle" id="requiredRunRateSubtitle">Needed daily to hit target</p>
+        </article>
 
-    if (!salesmanRow){
-      setFatalMessage("We couldn't find performance data for your account. Contact your administrator.");
-      setLoadingState(false);
-      return;
-    }
+      </div>
+    </section>
 
-    const rank = computeSalesmanRank(salesmanSnapshot, sessionUser.email);
-    populateHeader(salesmanRow, unit, sessionUser, rank);
+    <!-- ================= SECTION 4 — PROJECTION ================= -->
+    <section class="dashboard-section" id="projectionSection" aria-labelledby="projectionTitle">
+      <div class="section-heading">
+        <h2 id="projectionTitle">Projection</h2>
+      </div>
 
-    const overallKpis = computeOverallKpis(salesmanRow, unit);
-    populateOverallKpis(overallKpis);
+      <div class="projection-grid" id="projectionGrid">
 
-    populateCompanyCards(salesmanRow);
+        <article class="projection-card" id="projectedMonthEndCard">
+          <div class="kpi-icon kpi-icon-blue">
+            <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Projected Month End Sale</p>
+          <p class="kpi-value" id="projectedMonthEndValue">—</p>
+          <p class="kpi-subtitle" id="projectedMonthEndSubtitle">At current run rate</p>
+        </article>
 
-    const runRate = computeRunRate(overallKpis, unit);
-    populateRunRate(runRate);
+        <article class="projection-card" id="gapToTargetCard">
+          <div class="kpi-icon kpi-icon-rose">
+            <i class="bi bi-exclamation-diamond" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Gap To Target</p>
+          <p class="kpi-value" id="gapToTargetValue">—</p>
+          <p class="kpi-subtitle" id="gapToTargetSubtitle">Projected shortfall / surplus</p>
+        </article>
 
-    const projection = computeProjection(overallKpis, runRate, unit);
-    populateProjection(projection, overallKpis);
+      </div>
+    </section>
 
-    const returns = computeReturns(summary, salesmanRow.SalesmanName);
-    populateReturns(returns);
+    <!-- ================= SECTION 5 — RETURNS ================= -->
+    <section class="dashboard-section" id="returnsSection" aria-labelledby="returnsTitle">
+      <div class="section-heading">
+        <h2 id="returnsTitle">Returns</h2>
+      </div>
 
-    initSalesDetails(summary, salesmanRow.SalesmanName);
+      <div class="returns-grid" id="returnsGrid">
 
-  } catch (err) {
-    console.error("Failed to load salesman dashboard:", err);
-    setFatalMessage("Dashboard data is temporarily unavailable. Please try again shortly.");
-  } finally {
-    setLoadingState(false);
-  }
-}
+        <article class="returns-card" id="pharmaReturnCard">
+          <div class="kpi-icon kpi-icon-indigo">
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Pharma Return</p>
+          <p class="kpi-value" id="pharmaReturnValue">—</p>
+        </article>
 
-/* ---------------------------------------------------------------------------
-   14. ENTRY POINT
-   Theme is applied immediately (no need to wait on the API call), portal
-   tabs are wired next, then the dashboard data load kicks off. Single set
-   of listeners — no duplicates.
-   --------------------------------------------------------------------------- */
+        <article class="returns-card" id="plReturnCard">
+          <div class="kpi-icon kpi-icon-indigo">
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">PL Return</p>
+          <p class="kpi-value" id="plReturnValue">—</p>
+        </article>
 
-function bootSalesmanDashboard(){
-  initThemeToggle();
-  initPortalTabs();
-  initSalesmanDashboard();
-}
+        <article class="returns-card" id="returnPercentCard">
+          <div class="kpi-icon kpi-icon-rose">
+            <i class="bi bi-percent" aria-hidden="true"></i>
+          </div>
+          <p class="kpi-label">Return %</p>
+          <p class="kpi-value" id="returnPercentValue">—</p>
+        </article>
 
-if (document.readyState === "loading"){
-  document.addEventListener("DOMContentLoaded", bootSalesmanDashboard);
-} else {
-  bootSalesmanDashboard();
-}
+      </div>
+    </section>
+
+    <!-- ================= SECTION 6 — FOCUS PRODUCTS ================= -->
+    <section class="dashboard-section" id="focusProductsSection" aria-labelledby="focusProductsTitle">
+      <div class="section-heading">
+        <h2 id="focusProductsTitle">Focus Products</h2>
+      </div>
+
+      <article class="list-card" id="focusProductsCard">
+        <ul class="scrollable-list" id="focusProductsList">
+          <li class="empty-state" id="focusProductsEmptyState">
+            <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+            <p>No focus products assigned yet.</p>
+          </li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- ================= SECTION 7 — ANNOUNCEMENTS ================= -->
+    <section class="dashboard-section" id="announcementsSection" aria-labelledby="announcementsTitle">
+      <div class="section-heading">
+        <h2 id="announcementsTitle">Announcements</h2>
+      </div>
+
+      <article class="list-card" id="announcementsCard">
+        <ul class="scrollable-list" id="announcementsList">
+          <li class="empty-state" id="announcementsEmptyState">
+            <i class="bi bi-megaphone" aria-hidden="true"></i>
+            <p>No announcements at this time.</p>
+          </li>
+        </ul>
+      </article>
+    </section>
+
+    </div>
+    <!-- ================= END DASHBOARD VIEW ================= -->
+
+    <!-- ================= SALES DETAILS VIEW (Tab 2) ================= -->
+    <div id="salesDetailsView" role="tabpanel" aria-labelledby="detailsTabBtn" hidden>
+
+      <!-- ================= SECTION — SALES ANALYSIS TABS ================= -->
+      <section class="dashboard-section" id="salesAnalysisSection" aria-labelledby="salesAnalysisTitle">
+        <div class="section-heading">
+          <h2 id="salesAnalysisTitle">Sales Analysis</h2>
+        </div>
+
+        <!-- Tab navigation (ARIA tabs pattern). Switching is handled by JS
+             elsewhere — this markup only defines structure and the default
+             visible panel via the native `hidden` attribute. -->
+        <div class="tabs-nav" id="salesAnalysisTabs" role="tablist" aria-label="Sales analysis views">
+          <button
+            type="button"
+            class="tab-btn is-active"
+            id="dayWiseTabBtn"
+            role="tab"
+            aria-selected="true"
+            aria-controls="dayWisePanel">
+            <span class="tab-icon" aria-hidden="true">📅</span>
+            <span class="tab-label">Day Wise</span>
+          </button>
+
+          <button
+            type="button"
+            class="tab-btn"
+            id="customerWiseTabBtn"
+            role="tab"
+            aria-selected="false"
+            aria-controls="customerWisePanel"
+            tabindex="-1">
+            <span class="tab-icon" aria-hidden="true">👥</span>
+            <span class="tab-label">Customer Wise</span>
+          </button>
+
+          <button
+            type="button"
+            class="tab-btn"
+            id="routeWiseTabBtn"
+            role="tab"
+            aria-selected="false"
+            aria-controls="routeWisePanel"
+            tabindex="-1">
+            <span class="tab-icon" aria-hidden="true">🗺</span>
+            <span class="tab-label">Route Wise</span>
+          </button>
+        </div>
+
+        <!-- ============ TAB PANEL 1 — DAY WISE ============ -->
+        <div
+          class="tab-panel"
+          id="dayWisePanel"
+          role="tabpanel"
+          aria-labelledby="dayWiseTabBtn"
+          tabindex="0">
+
+          <!-- Summary card -->
+          <div class="kpi-grid analysis-summary-grid" id="dayWiseSummaryGrid">
+
+            <article class="kpi-card" id="dayWiseTotalSaleCard">
+              <div class="kpi-icon kpi-icon-blue">
+                <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+              </div>
+              <p class="kpi-label">Total Sale</p>
+              <p class="kpi-value" id="dayWiseTotalSale">—</p>
+            </article>
+
+            <article class="kpi-card" id="dayWiseTotalReturnCard">
+              <div class="kpi-icon kpi-icon-rose">
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+              </div>
+              <p class="kpi-label">Total Return</p>
+              <p class="kpi-value" id="dayWiseTotalReturn">—</p>
+            </article>
+
+            <article class="kpi-card" id="dayWiseTotalNetSaleCard">
+              <div class="kpi-icon kpi-icon-teal">
+                <i class="bi bi-cash-stack" aria-hidden="true"></i>
+              </div>
+              <p class="kpi-label">Total Net Sale</p>
+              <p class="kpi-value" id="dayWiseTotalNetSale">—</p>
+            </article>
+
+          </div>
+
+          <!-- Responsive table -->
+          <div class="data-table-wrapper" id="dayWiseTableWrapper">
+            <table class="data-table" id="dayWiseTable">
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Sale</th>
+                  <th scope="col">Return</th>
+                  <th scope="col">Net Sale</th>
+                </tr>
+              </thead>
+              <tbody id="dayWiseTableBody">
+                <tr class="table-empty-row" id="dayWiseTableEmptyState">
+                  <td colspan="4">
+                    <div class="empty-state">
+                      <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+                      <p>No data available.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============ TAB PANEL 2 — CUSTOMER WISE ============ -->
+        <div
+          class="tab-panel"
+          id="customerWisePanel"
+          role="tabpanel"
+          aria-labelledby="customerWiseTabBtn"
+          tabindex="0"
+          hidden>
+
+          <!-- Search box -->
+          <div class="table-search-bar" id="customerSearchBar">
+            <label class="visually-hidden" for="customerSearch">Search customer name or customer code</label>
+            <span class="table-search-icon" aria-hidden="true">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="search"
+              class="table-search-input"
+              id="customerSearch"
+              placeholder="Search Customer Name or Customer Code"
+              autocomplete="off">
+          </div>
+
+          <!-- Responsive table -->
+          <div class="data-table-wrapper" id="customerTableWrapper">
+            <table class="data-table" id="customerTable">
+              <thead>
+                <tr>
+                  <th scope="col">Customer Code</th>
+                  <th scope="col">Customer Name</th>
+                  <th scope="col">Sale</th>
+                  <th scope="col">Return</th>
+                  <th scope="col">Expiry</th>
+                  <th scope="col">Net Sale</th>
+                </tr>
+              </thead>
+              <tbody id="customerTableBody">
+                <tr class="table-empty-row" id="customerTableEmptyState">
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+                      <p>No data available.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============ TAB PANEL 3 — ROUTE WISE ============ -->
+        <div
+          class="tab-panel"
+          id="routeWisePanel"
+          role="tabpanel"
+          aria-labelledby="routeWiseTabBtn"
+          tabindex="0"
+          hidden>
+
+          <!-- Search box -->
+          <div class="table-search-bar" id="routeSearchBar">
+            <label class="visually-hidden" for="routeSearch">Search route</label>
+            <span class="table-search-icon" aria-hidden="true">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="search"
+              class="table-search-input"
+              id="routeSearch"
+              placeholder="Search Route"
+              autocomplete="off">
+          </div>
+
+          <!-- Responsive table -->
+          <div class="data-table-wrapper" id="routeTableWrapper">
+            <table class="data-table" id="routeTable">
+              <thead>
+                <tr>
+                  <th scope="col">Route Name</th>
+                  <th scope="col">Customer Count</th>
+                  <th scope="col">Sale</th>
+                  <th scope="col">Return</th>
+                  <th scope="col">Expiry</th>
+                  <th scope="col">Net Sale</th>
+                </tr>
+              </thead>
+              <tbody id="routeTableBody">
+                <tr class="table-empty-row" id="routeTableEmptyState">
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <i class="bi bi-clipboard2-data" aria-hidden="true"></i>
+                      <p>No data available.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+    <!-- ================= END SALES DETAILS VIEW ================= -->
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="salesman-footer" id="salesmanFooter">
+      <span id="footerCopyright">&copy; 2026 APDPL Business Intelligence</span>
+      <span id="footerVersion">v1.0.0</span>
+    </footer>
+
+  </main>
+
+  <script type="module" src="../js/salesman.js" defer></script>
+</body>
+</html>
