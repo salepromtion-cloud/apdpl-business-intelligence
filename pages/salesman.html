@@ -24,63 +24,38 @@
     <!-- ================= HEADER ================= -->
     <header class="salesman-header" id="salesmanHeader">
 
-      <!-- Row 1 (mobile) / Left segment (desktop): Logo -->
-      <div class="header-row header-row-top">
+      <div class="header-welcome" id="headerWelcome">
+        <p class="welcome-line">
+          <span class="salesman-name" id="salesmanName">—</span>
+        </p>
+        <p class="header-subtitle" id="headerSubtitle">My Performance Dashboard</p>
+      </div>
 
-        <div class="header-brand">
+      <div class="header-actions">
+        <span class="meta-chip" id="todaysDate">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <span>—</span>
+        </span>
+
+        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle light or dark theme" aria-pressed="false">
+          <i class="bi bi-moon-stars" aria-hidden="true"></i>
+        </button>
+
+        <button type="button" class="notification-btn" id="notificationBtn" aria-label="Notifications">
+          <i class="bi bi-bell" aria-hidden="true"></i>
+          <span class="notification-dot" id="notificationDot" hidden></span>
+        </button>
+      </div>
+
+      <div class="profile-block" id="profileBlock">
+        <div class="profile-photo-wrap">
           <img
-            src="../assets/images/logo.png"
-            alt="APDPL Business Intelligence logo"
-            class="header-logo"
-            id="headerLogo">
+            src=""
+            alt="Salesman profile photo"
+            class="profile-photo"
+            id="profilePhoto">
+          <span class="rank-badge" id="rankBadge">—</span>
         </div>
-
-        <!-- Profile sits beside the logo on mobile (Row 1);
-             desktop CSS reorders it to the far right. -->
-        <div class="profile-block" id="profileBlock">
-          <div class="profile-photo-wrap">
-            <img
-              src=""
-              alt="Salesman profile photo"
-              class="profile-photo"
-              id="profilePhoto">
-            <span class="rank-badge" id="rankBadge">—</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Row 2 (mobile) / Center segment (desktop): Welcome + Name + Title -->
-      <div class="header-row header-row-welcome">
-
-        <div class="header-welcome" id="headerWelcome">
-          <p class="welcome-line">
-            <span class="salesman-name" id="salesmanName">—</span>
-          </p>
-          <p class="header-subtitle" id="headerSubtitle">My Performance Dashboard</p>
-        </div>
-
-      </div>
-
-      <!-- Row 3 (mobile) / Right segment (desktop): Date + Theme + Notification -->
-      <div class="header-row header-row-meta">
-
-        <div class="header-actions">
-          <span class="meta-chip" id="todaysDate">
-            <i class="bi bi-clock-history" aria-hidden="true"></i>
-            <span>—</span>
-          </span>
-
-          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle light or dark theme" aria-pressed="false">
-            <i class="bi bi-moon-stars" aria-hidden="true"></i>
-          </button>
-
-          <button type="button" class="notification-btn" id="notificationBtn" aria-label="Notifications">
-            <i class="bi bi-bell" aria-hidden="true"></i>
-            <span class="notification-dot" id="notificationDot" hidden></span>
-          </button>
-        </div>
-
       </div>
 
     </header>
