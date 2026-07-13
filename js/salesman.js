@@ -494,6 +494,17 @@ function setFatalMessage(message){
 }
 
 /* ---------------------------------------------------------------------------
+   5b. RENDER YIELD HELPER (new — single reusable point for progressive
+   rendering; every yield between rendering stages goes through this one
+   function instead of scattering `await new Promise(requestAnimationFrame)`
+   throughout initSalesmanDashboard()).
+   --------------------------------------------------------------------------- */
+
+async function yieldToBrowser(){
+  await new Promise(requestAnimationFrame);
+}
+
+/* ---------------------------------------------------------------------------
    6. SALESMAN LOOKUP (exact sheet column name — Email)
    --------------------------------------------------------------------------- */
 
@@ -1123,6 +1134,13 @@ function initSalesDetails(summary, salesmanName){
 
 /* ---------------------------------------------------------------------------
    13. INIT / ORCHESTRATION
+
+   Progressive rendering: every yield between stages goes through the single
+   yieldToBrowser() helper (section 5b) instead of repeating
+   `await new Promise(requestAnimationFrame)` inline. No calculation,
+   formatting, animation, or business-logic function below was changed —
+   only the sequencing/timing of when each already-existing render function
+   is called.
    --------------------------------------------------------------------------- */
 
 async function initSalesmanDashboard(){
@@ -1153,28 +1171,46 @@ async function initSalesmanDashboard(){
     }
 
     const rank = computeSalesmanRank(salesmanSnapshot, sessionUser.email);
-    populateHeader(salesmanRow, unit, sessionUser, rank);
-
     const overallKpis = computeOverallKpis(salesmanRow, unit);
-    populateOverallKpis(overallKpis);
-
-    populateCompanyCards(salesmanRow);
-
     const runRate = computeRunRate(overallKpis, unit);
-    populateRunRate(runRate);
-
     const projection = computeProjection(overallKpis, runRate, unit);
-    populateProjection(projection, overallKpis);
-
     const returns = computeReturns(summary, salesmanRow.SalesmanName);
-    populateReturns(returns);
 
+    // 1. Header
+    populateHeader(salesmanRow, unit, sessionUser, rank);
+    await yieldToBrowser();
+
+    // 2. Overall KPI Cards
+    populateOverallKpis(overallKpis);
+    await yieldToBrowser();
+
+    // The essential dashboard (Header + Overall KPIs) is now rendered and
+    // usable — clear the loading state here so the dashboard becomes
+    // interactive immediately, before the remaining sections render.
+    setLoadingState(false);
+
+    // 3. Company Cards
+    populateCompanyCards(salesmanRow);
+    await yieldToBrowser();
+
+    // 4. Run Rate
+    populateRunRate(runRate);
+    await yieldToBrowser();
+
+    // 5. Projection
+    populateProjection(projection, overallKpis);
+    await yieldToBrowser();
+
+    // 6. Returns
+    populateReturns(returns);
+    await yieldToBrowser();
+
+    // 7. Sales Details
     initSalesDetails(summary, salesmanRow.SalesmanName);
 
   } catch (err) {
     console.error("Failed to load salesman dashboard:", err);
     setFatalMessage("Dashboard data is temporarily unavailable. Please try again shortly.");
-  } finally {
     setLoadingState(false);
   }
 }
