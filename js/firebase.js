@@ -42,21 +42,12 @@ const provider = new GoogleAuthProvider();
 // in-memory behaviour rather than breaking authentication.
 // ------------------------------------------------------
 
-(async function configureAuthPersistence(){
-
-    try{
-
-        await setPersistence(auth, browserLocalPersistence);
-
-    }
-
-    catch(error){
+setPersistence(auth, browserLocalPersistence)
+    .catch((error) => {
 
         console.error("Failed to configure Firebase Auth persistence:", error);
 
-    }
-
-})();
+    });
 
 // Export
 export {
