@@ -192,28 +192,29 @@
    5. RESPONSIVE DATA TABLES
    --------------------------------------------------------------------- */
 
+/* Single source of truth for the table wrapper's box + scroll behavior.
+   Horizontal AND vertical scroll are both contained strictly within this
+   wrapper — the page itself never overflows, on desktop or mobile. */
 .data-table-wrapper{
   inline-size: 100%;
   background: var(--sm-surface);
   border: 1px solid var(--sm-border);
   border-radius: var(--sm-radius-lg);
   box-shadow: var(--sm-shadow-sm);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-block-size: 72vh;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sm-border) transparent;
   transition: background-color var(--sm-theme-duration) var(--sm-ease),
               border-color var(--sm-theme-duration) var(--sm-ease);
 }
 
-/* Horizontal scroll is contained strictly within the table wrapper —
-   the page itself never overflows horizontally. */
-.data-table-scroll,
-.data-table-wrapper{
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--sm-border) transparent;
-}
-
 .data-table-wrapper::-webkit-scrollbar{
   block-size: 7px;
+  inline-size: 7px;
 }
 
 .data-table-wrapper::-webkit-scrollbar-track{
