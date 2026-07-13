@@ -2,6 +2,17 @@
 // APDPL Business Intelligence
 // Authentication Module
 // ======================================================
+//
+// Architecture:
+// Firebase Authentication (onAuthStateChanged) is the SINGLE source of
+// truth for auth state. It is the only controller that shows/hides the
+// loading screen, calls verifyUser(), and drives redirects.
+//
+// loginUser() only triggers the Google sign-in popup. It never verifies
+// the user and never redirects — once signInWithPopup() succeeds,
+// Firebase updates its internal auth state, onAuthStateChanged() fires,
+// and that single listener takes it from there.
+// ======================================================
 
 import {
     auth,
@@ -10,7 +21,8 @@ import {
 
 import {
     signInWithPopup,
-    signOut
+    signOut,
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
 // ------------------------------------------------------
@@ -28,7 +40,18 @@ const loginButton = document.getElementById("googleLogin");
 const loading = document.getElementById("loading");
 
 // ------------------------------------------------------
+// Verification Guard
+// Lightweight production-safe flag to prevent verifyUser() from running
+// more than once concurrently (e.g. rapid auth-state re-fires).
+// ------------------------------------------------------
+
+let isVerifying = false;
+
+// ------------------------------------------------------
 // Login Button
+// Only starts the Google popup. Verification and redirects are handled
+// exclusively by onAuthStateChanged() below, so this stays a single,
+// side-effect-free entry point with no duplicate listeners.
 // ------------------------------------------------------
 
 if(loginButton){
@@ -38,7 +61,40 @@ if(loginButton){
 }
 
 // ------------------------------------------------------
+// Authentication Controller (single source of truth)
+// Fires on initial page load with the current auth state, and again on
+// every future sign-in / sign-out. This is the ONLY place that shows or
+// hides the loading screen, calls verifyUser(), or redirects — so there
+// is exactly one verification path for both returning and first-time
+// users, with no duplicate logic and no state flags required.
+// ------------------------------------------------------
+
+onAuthStateChanged(auth, (user) => {
+
+    if(user){
+
+        // Authenticated (returning session or fresh popup login alike) —
+        // show the loading screen and verify against the salesman sheet.
+        showLoading(true);
+
+        verifyUser(user);
+
+    }
+
+    else{
+
+        // No authenticated user — show the login button, hide loading.
+        showLoading(false);
+
+    }
+
+});
+
+// ------------------------------------------------------
 // Google Login
+// Only opens the sign-in popup and surfaces popup errors. Does NOT call
+// verifyUser() and does NOT redirect — onAuthStateChanged() handles the
+// rest once Firebase reports the new signed-in user.
 // ------------------------------------------------------
 
 async function loginUser(){
@@ -47,11 +103,7 @@ async function loginUser(){
 
         showLoading(true);
 
-        const result = await signInWithPopup(auth, provider);
-
-        const user = result.user;
-
-        await verifyUser(user);
+        await signInWithPopup(auth, provider);
 
     }
 
@@ -72,6 +124,15 @@ async function loginUser(){
 // ------------------------------------------------------
 
 async function verifyUser(user){
+
+    // Guard against duplicate/concurrent verification runs.
+    if(isVerifying){
+
+        return;
+
+    }
+
+    isVerifying = true;
 
     try{
 
@@ -147,7 +208,7 @@ async function verifyUser(user){
 
             showLoading(false);
 
-            window.location.href="pages/dashboard.html";
+            window.location.replace("pages/dashboard.html");
 
         }
 
@@ -155,7 +216,7 @@ async function verifyUser(user){
 
             showLoading(false);
 
-            window.location.href="pages/salesman.html";
+            window.location.replace("pages/salesman.html");
 
         }
 
@@ -180,6 +241,12 @@ async function verifyUser(user){
         alert("Unable to verify user.Contact the Aravindan(8971422339) for assistance.");
 
         showLoading(false);
+
+    }
+
+    finally{
+
+        isVerifying = false;
 
     }
 
