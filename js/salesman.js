@@ -1162,6 +1162,9 @@ async function initSalesmanDashboard(){
     // unitSnapshot may arrive as an object or as an array containing one object.
     const unit = Array.isArray(unitSnapshot) ? unitSnapshot[0] : unitSnapshot;
 
+    console.log("UNIT SNAPSHOT");
+    console.table(unit);
+
     const salesmanRow = findSalesmanRow(salesmanSnapshot, sessionUser.email);
 
     if (!salesmanRow){
